@@ -319,7 +319,7 @@ const MyPage = () => {
                     <div className="relative">
                       <input
                         type="text"
-                        value={formData.student_id || ''}
+                        value={(formData as any).student_id || ''}
                         disabled
                         className="w-full px-3 py-2 bg-[#2A2A2A] border border-[#3A3A3A] rounded-lg text-[#B0B0B0] cursor-not-allowed opacity-60"
                       />

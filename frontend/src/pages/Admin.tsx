@@ -1963,7 +1963,9 @@ const QuestionEditor = ({
                         onClick={() => {
                           if (index > 0) {
                             const newOptions = [...(editData.options || [])]
-                            [newOptions[index - 1], newOptions[index]] = [newOptions[index], newOptions[index - 1]]
+                            const temp = newOptions[index - 1]
+                            newOptions[index - 1] = newOptions[index]
+                            newOptions[index] = temp
                             setEditData({ ...editData, options: newOptions })
                           }
                         }}
@@ -1978,7 +1980,9 @@ const QuestionEditor = ({
                         onClick={() => {
                           if (index < (editData.options?.length || 0) - 1) {
                             const newOptions = [...(editData.options || [])]
-                            [newOptions[index], newOptions[index + 1]] = [newOptions[index + 1], newOptions[index]]
+                            const temp = newOptions[index]
+                            newOptions[index] = newOptions[index + 1]
+                            newOptions[index + 1] = temp
                             setEditData({ ...editData, options: newOptions })
                           }
                         }}
@@ -2317,7 +2321,7 @@ const TrafficTab = ({
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  label={({ name, percent }) => `${name} ${((percent as number) * 100).toFixed(0)}%`}
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="value"
