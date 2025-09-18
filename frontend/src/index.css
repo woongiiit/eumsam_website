@@ -1,0 +1,124 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Pretendard', system-ui, sans-serif;
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 min-h-screen;
+  }
+  
+  /* 부드러운 스크롤 스냅을 위한 커스텀 스타일 */
+  .smooth-snap-container {
+    scroll-behavior: smooth;
+    scroll-snap-type: y mandatory;
+    scroll-padding-top: 0;
+    /* 부드러운 스크롤을 위한 추가 설정 */
+    scroll-snap-stop: always;
+    transition: scroll-behavior 0.3s ease-in-out;
+  }
+  
+  .smooth-snap-section {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    /* 섹션 전환 시 부드러운 애니메이션 */
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+  }
+  
+  /* 스크롤 스냅 애니메이션 개선 */
+  .smooth-snap-container::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .smooth-snap-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+  }
+  
+  .smooth-snap-container::-webkit-scrollbar-thumb {
+    background: rgba(109, 211, 199, 0.5);
+    border-radius: 4px;
+    transition: background 0.3s ease;
+  }
+  
+  .smooth-snap-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(109, 211, 199, 0.8);
+  }
+  
+  /* 스크롤 페이드인 애니메이션 */
+  .fade-in-section {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 1.2s ease-out, transform 1.2s ease-out;
+  }
+  
+  .fade-in-section.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* 모바일 뷰포트 높이 개선 */
+  @supports (-webkit-touch-callout: none) {
+    .min-h-screen {
+      min-height: -webkit-fill-available;
+    }
+  }
+
+  /* 모바일에서의 추가 개선사항 */
+  @media (max-width: 768px) {
+    .fade-in-section {
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+    }
+    
+    /* 모바일에서 애니메이션 지연 줄이기 */
+    .fade-in-delay-1 { transition-delay: 0.1s; }
+    .fade-in-delay-2 { transition-delay: 0.2s; }
+    .fade-in-delay-3 { transition-delay: 0.3s; }
+    .fade-in-delay-4 { transition-delay: 0.4s; }
+  }
+  
+  /* 지연된 페이드인을 위한 클래스들 */
+  .fade-in-delay-1 {
+    transition-delay: 0.15s;
+  }
+  
+  .fade-in-delay-2 {
+    transition-delay: 0.3s;
+  }
+  
+  .fade-in-delay-3 {
+    transition-delay: 0.45s;
+  }
+  
+  .fade-in-delay-4 {
+    transition-delay: 0.6s;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-gradient-to-r from-primary-500 to-secondary-500 text-white px-6 py-3 rounded-lg font-medium hover:from-primary-600 hover:to-secondary-600 transition-all duration-300 shadow-lg hover:shadow-xl;
+  }
+  
+  .btn-secondary {
+    @apply bg-white text-gray-700 px-6 py-3 rounded-lg font-medium border border-gray-200 hover:bg-gray-50 transition-all duration-300 shadow-sm hover:shadow-md;
+  }
+  
+  .card {
+    @apply bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100;
+  }
+  
+  .input-field {
+    @apply w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-300;
+  }
+  
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent;
+  }
+}
