@@ -81,6 +81,15 @@ async def proxy_frontend_post_requests(path: str, request: Request):
     from fastapi.responses import RedirectResponse
     return RedirectResponse(url=f"/api/{path}", status_code=307)
 
+# 프론트엔드에서 직접 API 호출하는 경우 처리
+@app.api_route("/api/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
+async def handle_api_requests(path: str, request: Request):
+    """프론트엔드에서 직접 API 호출하는 경우 처리"""
+    print(f"API 요청 받음: {request.method} /api/{path}")
+    # 실제 API 라우터로 전달
+    from fastapi import Request as FastAPIRequest
+    return await app.router.handle(FastAPIRequest(scope=request.scope, receive=request.receive))
+
 @app.get("/")
 async def root():
     return {"message": "음샘 밴드 동아리 API 서버가 정상적으로 실행 중입니다!"}
