@@ -266,7 +266,7 @@ const GalleryDetail = () => {
               >
                 {item.file_type === 'image' ? (
                   <img
-                    src={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/static/${item.file_path}`}
+                    src={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/${item.file_path}`}
                     alt={item.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     onError={(e) => {
@@ -314,13 +314,13 @@ const GalleryDetail = () => {
               
               {album.items[currentIndex].file_type === 'image' ? (
                 <img
-                  src={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/static/${album.items[currentIndex].file_path}`}
+                  src={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/${album.items[currentIndex].file_path}`}
                   alt={album.items[currentIndex].title}
                   className="max-w-full max-h-full object-contain"
                 />
               ) : (
                 <video
-                  src={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/static/${album.items[currentIndex].file_path}`}
+                  src={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/${album.items[currentIndex].file_path}`}
                   controls
                   className="max-w-full max-h-full"
                 />
