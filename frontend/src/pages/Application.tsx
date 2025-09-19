@@ -27,7 +27,45 @@ const Application = () => {
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [formQuestions, setFormQuestions] = useState<FormQuestion[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isSupportActive, setIsSupportActive] = useState(true)
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<ApplicationForm>()
+
+  // 지원하기 활성화 상태 확인
+  useEffect(() => {
+    const checkSupportStatus = () => {
+      const savedStatus = localStorage.getItem('support_active')
+      if (savedStatus !== null) {
+        const isActive = JSON.parse(savedStatus)
+        setIsSupportActive(isActive)
+      } else {
+        setIsSupportActive(true) // 기본값은 활성화
+      }
+    }
+    
+    checkSupportStatus()
+    
+    // 로컬 스토리지 변경 감지
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'support_active') {
+        setIsSupportActive(e.newValue ? JSON.parse(e.newValue) : true)
+      }
+    }
+    
+    // 커스텀 이벤트 감지
+    const handleCustomStorageChange = () => {
+      const savedStatus = localStorage.getItem('support_active')
+      const isActive = savedStatus ? JSON.parse(savedStatus) : true
+      setIsSupportActive(isActive)
+    }
+    
+    window.addEventListener('storage', handleStorageChange)
+    window.addEventListener('supportStatusChanged', handleCustomStorageChange)
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('supportStatusChanged', handleCustomStorageChange)
+    }
+  }, [])
 
   // 관리자가 설정한 양식 질문 로드
   useEffect(() => {
@@ -222,6 +260,26 @@ const Application = () => {
           />
         )
     }
+  }
+
+  // 지원하기가 비활성화된 경우
+  if (!isSupportActive) {
+    return (
+      <div className="min-h-screen bg-[#1A1A1A] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full text-center">
+          <div className="bg-[#121212] border border-[#2A2A2A] py-8 px-6 shadow-xl rounded-2xl">
+            <Music className="w-16 h-16 text-[#6DD3C7] mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-[#EAEAEA] mb-4">지원 기간이 아닙니다</h2>
+            <p className="text-[#B0B0B0] mb-6">
+              현재 음샘 지원 기간이 아닙니다. 지원 기간에 다시 방문해주세요.
+            </p>
+            <a href="/" className="btn-primary">
+              홈으로 돌아가기
+            </a>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   if (!user) {

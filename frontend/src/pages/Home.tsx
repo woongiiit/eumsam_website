@@ -1,16 +1,55 @@
 import { Link } from 'react-router-dom'
 import { useQuery } from 'react-query'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { api } from '../api'
 import { Music, Camera, UserPlus, ArrowRight, Heart, Star, Award, Calendar } from 'lucide-react'
 import { useScrollAnimation } from '../hooks/useScrollAnimation'
 
 const Home = () => {
+  const [isSupportActive, setIsSupportActive] = useState(true)
+
   // 페이지 로드 시 최상단으로 스크롤
   useEffect(() => {
     setTimeout(() => {
       window.scrollTo(0, 0)
     }, 1)
+  }, [])
+
+  // 지원하기 활성화 상태 확인
+  useEffect(() => {
+    const checkSupportStatus = () => {
+      const savedStatus = localStorage.getItem('support_active')
+      if (savedStatus !== null) {
+        const isActive = JSON.parse(savedStatus)
+        setIsSupportActive(isActive)
+      } else {
+        setIsSupportActive(true) // 기본값은 활성화
+      }
+    }
+    
+    checkSupportStatus()
+    
+    // 로컬 스토리지 변경 감지
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'support_active') {
+        setIsSupportActive(e.newValue ? JSON.parse(e.newValue) : true)
+      }
+    }
+    
+    // 커스텀 이벤트 감지
+    const handleCustomStorageChange = () => {
+      const savedStatus = localStorage.getItem('support_active')
+      const isActive = savedStatus ? JSON.parse(savedStatus) : true
+      setIsSupportActive(isActive)
+    }
+    
+    window.addEventListener('storage', handleStorageChange)
+    window.addEventListener('supportStatusChanged', handleCustomStorageChange)
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('supportStatusChanged', handleCustomStorageChange)
+    }
   }, [])
 
   // 스크롤 애니메이션 훅들 (threshold 값으로 애니메이션 시작 시점 조절)
@@ -129,10 +168,21 @@ const Home = () => {
                      함께 즐기며 성장하는 동국대학교 중앙 밴드동아리
                    </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-              <Link to="/application" className="bg-gradient-to-r from-[#6DD3C7] to-[#4ECDC4] text-[#1A1A1A] text-lg px-8 py-4 rounded-lg font-semibold hover:shadow-[0_0_30px_rgba(109,211,199,0.4)] transition-all duration-300 transform hover:scale-105">
-                지원하기
-                <ArrowRight className="w-5 h-5 ml-2 inline" />
-              </Link>
+              {isSupportActive ? (
+                <Link to="/application" className="bg-gradient-to-r from-[#6DD3C7] to-[#4ECDC4] text-[#1A1A1A] text-lg px-8 py-4 rounded-lg font-semibold hover:shadow-[0_0_30px_rgba(109,211,199,0.4)] transition-all duration-300 transform hover:scale-105">
+                  지원하기
+                  <ArrowRight className="w-5 h-5 ml-2 inline" />
+                </Link>
+              ) : (
+                <button 
+                  onClick={() => alert('지금은 음샘 지원 기간이 아닙니다!')}
+                  className="bg-gray-400 text-gray-600 text-lg px-8 py-4 rounded-lg font-semibold cursor-not-allowed opacity-60"
+                  disabled
+                >
+                  지원하기 (비활성화)
+                  <ArrowRight className="w-5 h-5 ml-2 inline" />
+                </button>
+              )}
               <button 
                 onClick={() => {
                   document.getElementById('about')?.scrollIntoView({ 
@@ -345,13 +395,24 @@ const Home = () => {
             경험과 실력에 관계없이 음악을 사랑하는 모든 분을 환영합니다
           </p>
           <div className={`flex flex-col sm:flex-row gap-4 justify-center fade-in-section fade-in-delay-2 ${ctaAnimation.isVisible ? 'visible' : ''}`}>
-            <Link
-              to="/application"
-              className="bg-[#6DD3C7] text-[#1A1A1A] px-8 py-4 rounded-lg font-semibold text-lg hover:bg-[#4ECDC4] hover:shadow-[0_0_20px_rgba(109,211,199,0.4)] transition-all duration-300 transform hover:scale-105 inline-flex items-center justify-center"
-            >
-              <UserPlus className="w-5 h-5 mr-2" />
-              지금 지원하기
-            </Link>
+            {isSupportActive ? (
+              <Link
+                to="/application"
+                className="bg-[#6DD3C7] text-[#1A1A1A] px-8 py-4 rounded-lg font-semibold text-lg hover:bg-[#4ECDC4] hover:shadow-[0_0_20px_rgba(109,211,199,0.4)] transition-all duration-300 transform hover:scale-105 inline-flex items-center justify-center"
+              >
+                <UserPlus className="w-5 h-5 mr-2" />
+                지금 지원하기
+              </Link>
+            ) : (
+              <button
+                onClick={() => alert('지금은 음샘 지원 기간이 아닙니다!')}
+                className="bg-gray-400 text-gray-600 px-8 py-4 rounded-lg font-semibold text-lg cursor-not-allowed opacity-60 inline-flex items-center justify-center"
+                disabled
+              >
+                <UserPlus className="w-5 h-5 mr-2" />
+                지금 지원하기 (비활성화)
+              </button>
+            )}
             <Link
               to="/gallery"
               className="border-2 border-[#6DD3C7] text-[#6DD3C7] px-8 py-4 rounded-lg font-semibold text-lg hover:bg-[#6DD3C7] hover:text-[#1A1A1A] hover:shadow-[0_0_20px_rgba(109,211,199,0.4)] transition-all duration-300 transform hover:scale-105 inline-flex items-center justify-center"

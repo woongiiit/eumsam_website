@@ -28,8 +28,46 @@ const Board = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('')
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPosts, setTotalPosts] = useState(0)
+  const [isSupportActive, setIsSupportActive] = useState(true)
   
   const postsPerPage = 10
+
+  // 지원하기 활성화 상태 확인
+  useEffect(() => {
+    const checkSupportStatus = () => {
+      const savedStatus = localStorage.getItem('support_active')
+      if (savedStatus !== null) {
+        const isActive = JSON.parse(savedStatus)
+        setIsSupportActive(isActive)
+      } else {
+        setIsSupportActive(true) // 기본값은 활성화
+      }
+    }
+    
+    checkSupportStatus()
+    
+    // 로컬 스토리지 변경 감지
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'support_active') {
+        setIsSupportActive(e.newValue ? JSON.parse(e.newValue) : true)
+      }
+    }
+    
+    // 커스텀 이벤트 감지
+    const handleCustomStorageChange = () => {
+      const savedStatus = localStorage.getItem('support_active')
+      const isActive = savedStatus ? JSON.parse(savedStatus) : true
+      setIsSupportActive(isActive)
+    }
+    
+    window.addEventListener('storage', handleStorageChange)
+    window.addEventListener('supportStatusChanged', handleCustomStorageChange)
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('supportStatusChanged', handleCustomStorageChange)
+    }
+  }, [])
 
   const categories = [
     { value: '', label: '전체' },
@@ -342,9 +380,19 @@ const Board = () => {
               <p className="text-[#B0B0B0] text-sm mb-4">
                 현재 관리자 승인 대기 중입니다. 승인 후 게시글 내용을 읽을 수 있습니다.
               </p>
-              <Link to="/application" className="btn-primary">
-                지원하기
-              </Link>
+              {isSupportActive ? (
+                <Link to="/application" className="btn-primary">
+                  지원하기
+                </Link>
+              ) : (
+                <button 
+                  onClick={() => alert('지금은 음샘 지원 기간이 아닙니다!')}
+                  className="bg-gray-400 text-gray-600 px-6 py-3 rounded-lg font-semibold cursor-not-allowed opacity-60"
+                  disabled
+                >
+                  지원하기 (비활성화)
+                </button>
+              )}
             </div>
           </div>
         )}

@@ -1,6 +1,45 @@
 import { Music, Mail, MapPin, Phone } from 'lucide-react'
+import { useState, useEffect } from 'react'
 
 const Footer = () => {
+  const [isSupportActive, setIsSupportActive] = useState(true)
+
+  // 지원하기 활성화 상태 확인
+  useEffect(() => {
+    const checkSupportStatus = () => {
+      const savedStatus = localStorage.getItem('support_active')
+      if (savedStatus !== null) {
+        const isActive = JSON.parse(savedStatus)
+        setIsSupportActive(isActive)
+      } else {
+        setIsSupportActive(true) // 기본값은 활성화
+      }
+    }
+    
+    checkSupportStatus()
+    
+    // 로컬 스토리지 변경 감지
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'support_active') {
+        setIsSupportActive(e.newValue ? JSON.parse(e.newValue) : true)
+      }
+    }
+    
+    // 커스텀 이벤트 감지
+    const handleCustomStorageChange = () => {
+      const savedStatus = localStorage.getItem('support_active')
+      const isActive = savedStatus ? JSON.parse(savedStatus) : true
+      setIsSupportActive(isActive)
+    }
+    
+    window.addEventListener('storage', handleStorageChange)
+    window.addEventListener('supportStatusChanged', handleCustomStorageChange)
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('supportStatusChanged', handleCustomStorageChange)
+    }
+  }, [])
   return (
     <footer className="bg-white border-t border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -50,7 +89,19 @@ const Footer = () => {
             <ul className="space-y-2">
               <li><a href="/board" className="text-gray-600 hover:text-primary-600 transition-colors">커뮤니티</a></li>
               <li><a href="/gallery" className="text-gray-600 hover:text-primary-600 transition-colors">갤러리</a></li>
-              <li><a href="/application" className="text-gray-600 hover:text-primary-600 transition-colors">지원하기</a></li>
+              <li>
+                {isSupportActive ? (
+                  <a href="/application" className="text-gray-600 hover:text-primary-600 transition-colors">지원하기</a>
+                ) : (
+                  <span 
+                    className="text-gray-400 cursor-not-allowed"
+                    onClick={() => alert('지금은 음샘 지원 기간이 아닙니다!')}
+                    title="지원 기간이 아닙니다"
+                  >
+                    지원하기 (비활성화)
+                  </span>
+                )}
+              </li>
             </ul>
           </div>
 
