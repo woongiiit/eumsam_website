@@ -26,6 +26,12 @@ export default defineConfig({
   preview: {
     host: '0.0.0.0',
     port: process.env.PORT ? parseInt(process.env.PORT) : 8080,
-    allowedHosts: 'all',
+    allowedHosts: [
+      'eumsamfrontend-production.up.railway.app',
+      'localhost',
+      '127.0.0.1',
+      '.railway.app',
+      '.up.railway.app'
+    ],
   },
 })
