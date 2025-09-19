@@ -84,32 +84,7 @@ async def proxy_frontend_post_requests(path: str, request: Request):
     return RedirectResponse(url=f"/api/{path}", status_code=307)
 
 # 프론트엔드에서 직접 API 호출하는 경우 처리
-@app.api_route("/api/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
-async def handle_api_requests(path: str, request: Request):
-    """프론트엔드에서 직접 API 호출하는 경우 처리"""
-    print(f"API 요청 받음: {request.method} /api/{path}")
-    print(f"Request URL: {request.url}")
-    print(f"Request Headers: {dict(request.headers)}")
-    print(f"CORS Origin: {request.headers.get('origin', 'No origin')}")
-    
-    try:
-        # 실제 API 라우터로 전달 - 올바른 방법
-        from fastapi import Request as FastAPIRequest
-        from fastapi.responses import JSONResponse
-        
-        # 새로운 Request 객체 생성
-        new_request = FastAPIRequest(scope=request.scope, receive=request.receive)
-        
-        # 라우터에 직접 전달
-        response = await app.router.dispatch(new_request)
-        return response
-        
-    except Exception as e:
-        print(f"API 요청 처리 중 오류 발생: {str(e)}")
-        return JSONResponse(
-            status_code=500,
-            content={"detail": f"API 요청 처리 중 오류가 발생했습니다: {str(e)}"}
-        )
+# 복잡한 핸들러를 제거하고 기존 API 라우터들이 자동으로 처리하도록 함
 
 @app.get("/")
 async def root():
