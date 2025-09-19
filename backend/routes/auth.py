@@ -12,9 +12,12 @@ router = APIRouter()
 @router.post("/register", response_model=UserResponse)
 async def register(user_data: UserCreate, db: Session = Depends(get_db)):
     """회원가입"""
+    print(f"회원가입 요청 받음: {user_data.email}")
+    
     # 이메일 중복 확인
     existing_user = db.query(User).filter(User.email == user_data.email).first()
     if existing_user:
+        print(f"이메일 중복: {user_data.email}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="이미 가입된 이메일입니다"
@@ -44,6 +47,7 @@ async def register(user_data: UserCreate, db: Session = Depends(get_db)):
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
+    print(f"사용자 생성 완료: {db_user.id}, {db_user.email}")
     
     # 환영 이메일 전송 (비동기)
     try:
