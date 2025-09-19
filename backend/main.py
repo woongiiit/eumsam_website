@@ -49,11 +49,21 @@ async def log_static_requests(request: Request, call_next):
     if request.url.path.startswith("/static/"):
         print(f"정적 파일 요청: {request.url.path}")
         print(f"정적 파일 전체 URL: {request.url}")
+    elif request.url.path.startswith("/gallery/"):
+        print(f"갤러리 파일 요청 (리다이렉트): {request.url.path}")
+        print(f"갤러리 파일 전체 URL: {request.url}")
     
     response = await call_next(request)
     return response
 
+# 정적 파일 마운트
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# 갤러리 파일 요청을 정적 파일로 리다이렉트
+@app.get("/gallery/{file_path:path}")
+async def serve_gallery_file(file_path: str):
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url=f"/static/gallery/{file_path}", status_code=301)
 
 # 라우터 등록
 app.include_router(auth.router, prefix="/api/auth", tags=["인증"])
