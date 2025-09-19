@@ -168,21 +168,23 @@ const Home = () => {
                      함께 즐기며 성장하는 동국대학교 중앙 밴드동아리
                    </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-              {isSupportActive ? (
-                <Link to="/application" className="bg-gradient-to-r from-[#6DD3C7] to-[#4ECDC4] text-[#1A1A1A] text-lg px-8 py-4 rounded-lg font-semibold hover:shadow-[0_0_30px_rgba(109,211,199,0.4)] transition-all duration-300 transform hover:scale-105">
-                  지원하기
-                  <ArrowRight className="w-5 h-5 ml-2 inline" />
-                </Link>
-              ) : (
-                <button 
-                  onClick={() => alert('지금은 음샘 지원 기간이 아닙니다!')}
-                  className="bg-gray-400 text-gray-600 text-lg px-8 py-4 rounded-lg font-semibold cursor-not-allowed opacity-60"
-                  disabled
-                >
-                  지원하기 (비활성화)
-                  <ArrowRight className="w-5 h-5 ml-2 inline" />
-                </button>
-              )}
+              <Link 
+                to={isSupportActive ? "/application" : "#"} 
+                onClick={(e) => {
+                  if (!isSupportActive) {
+                    e.preventDefault()
+                    alert('지금은 음샘 지원 기간이 아닙니다!')
+                  }
+                }}
+                className={`text-lg px-8 py-4 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 ${
+                  isSupportActive 
+                    ? "bg-gradient-to-r from-[#6DD3C7] to-[#4ECDC4] text-[#1A1A1A] hover:shadow-[0_0_30px_rgba(109,211,199,0.4)]" 
+                    : "bg-gradient-to-r from-[#6DD3C7] to-[#4ECDC4] text-[#1A1A1A] hover:shadow-[0_0_30px_rgba(109,211,199,0.4)]"
+                }`}
+              >
+                지원하기
+                <ArrowRight className="w-5 h-5 ml-2 inline" />
+              </Link>
               <button 
                 onClick={() => {
                   document.getElementById('about')?.scrollIntoView({ 
@@ -395,24 +397,19 @@ const Home = () => {
             경험과 실력에 관계없이 음악을 사랑하는 모든 분을 환영합니다
           </p>
           <div className={`flex flex-col sm:flex-row gap-4 justify-center fade-in-section fade-in-delay-2 ${ctaAnimation.isVisible ? 'visible' : ''}`}>
-            {isSupportActive ? (
-              <Link
-                to="/application"
-                className="bg-[#6DD3C7] text-[#1A1A1A] px-8 py-4 rounded-lg font-semibold text-lg hover:bg-[#4ECDC4] hover:shadow-[0_0_20px_rgba(109,211,199,0.4)] transition-all duration-300 transform hover:scale-105 inline-flex items-center justify-center"
-              >
-                <UserPlus className="w-5 h-5 mr-2" />
-                지금 지원하기
-              </Link>
-            ) : (
-              <button
-                onClick={() => alert('지금은 음샘 지원 기간이 아닙니다!')}
-                className="bg-gray-400 text-gray-600 px-8 py-4 rounded-lg font-semibold text-lg cursor-not-allowed opacity-60 inline-flex items-center justify-center"
-                disabled
-              >
-                <UserPlus className="w-5 h-5 mr-2" />
-                지금 지원하기 (비활성화)
-              </button>
-            )}
+            <Link
+              to={isSupportActive ? "/application" : "#"}
+              onClick={(e) => {
+                if (!isSupportActive) {
+                  e.preventDefault()
+                  alert('지금은 음샘 지원 기간이 아닙니다!')
+                }
+              }}
+              className="bg-[#6DD3C7] text-[#1A1A1A] px-8 py-4 rounded-lg font-semibold text-lg hover:bg-[#4ECDC4] hover:shadow-[0_0_20px_rgba(109,211,199,0.4)] transition-all duration-300 transform hover:scale-105 inline-flex items-center justify-center"
+            >
+              <UserPlus className="w-5 h-5 mr-2" />
+              지금 지원하기
+            </Link>
             <Link
               to="/gallery"
               className="border-2 border-[#6DD3C7] text-[#6DD3C7] px-8 py-4 rounded-lg font-semibold text-lg hover:bg-[#6DD3C7] hover:text-[#1A1A1A] hover:shadow-[0_0_20px_rgba(109,211,199,0.4)] transition-all duration-300 transform hover:scale-105 inline-flex items-center justify-center"

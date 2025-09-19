@@ -90,17 +90,18 @@ const Footer = () => {
               <li><a href="/board" className="text-gray-600 hover:text-primary-600 transition-colors">커뮤니티</a></li>
               <li><a href="/gallery" className="text-gray-600 hover:text-primary-600 transition-colors">갤러리</a></li>
               <li>
-                {isSupportActive ? (
-                  <a href="/application" className="text-gray-600 hover:text-primary-600 transition-colors">지원하기</a>
-                ) : (
-                  <span 
-                    className="text-gray-400 cursor-not-allowed"
-                    onClick={() => alert('지금은 음샘 지원 기간이 아닙니다!')}
-                    title="지원 기간이 아닙니다"
-                  >
-                    지원하기 (비활성화)
-                  </span>
-                )}
+                <a 
+                  href={isSupportActive ? "/application" : "#"} 
+                  onClick={(e) => {
+                    if (!isSupportActive) {
+                      e.preventDefault()
+                      alert('지금은 음샘 지원 기간이 아닙니다!')
+                    }
+                  }}
+                  className="text-gray-600 hover:text-primary-600 transition-colors cursor-pointer"
+                >
+                  지원하기
+                </a>
               </li>
             </ul>
           </div>

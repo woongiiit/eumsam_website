@@ -380,19 +380,18 @@ const Board = () => {
               <p className="text-[#B0B0B0] text-sm mb-4">
                 현재 관리자 승인 대기 중입니다. 승인 후 게시글 내용을 읽을 수 있습니다.
               </p>
-              {isSupportActive ? (
-                <Link to="/application" className="btn-primary">
-                  지원하기
-                </Link>
-              ) : (
-                <button 
-                  onClick={() => alert('지금은 음샘 지원 기간이 아닙니다!')}
-                  className="bg-gray-400 text-gray-600 px-6 py-3 rounded-lg font-semibold cursor-not-allowed opacity-60"
-                  disabled
-                >
-                  지원하기 (비활성화)
-                </button>
-              )}
+              <Link 
+                to={isSupportActive ? "/application" : "#"} 
+                onClick={(e) => {
+                  if (!isSupportActive) {
+                    e.preventDefault()
+                    alert('지금은 음샘 지원 기간이 아닙니다!')
+                  }
+                }}
+                className="btn-primary"
+              >
+                지원하기
+              </Link>
             </div>
           </div>
         )}
