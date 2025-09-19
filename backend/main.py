@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi import FastAPI, HTTPException, Depends, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -73,6 +73,13 @@ async def proxy_frontend_requests(path: str):
     """프론트엔드에서 잘못된 URL로 요청이 올 때 리다이렉트"""
     from fastapi.responses import RedirectResponse
     return RedirectResponse(url=f"/api/{path}", status_code=301)
+
+# POST 요청도 처리
+@app.post("/eumsamwebsite-production.up.railway.app/api/{path:path}")
+async def proxy_frontend_post_requests(path: str, request: Request):
+    """프론트엔드 POST 요청을 백엔드로 리다이렉트"""
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url=f"/api/{path}", status_code=307)
 
 @app.get("/")
 async def root():
