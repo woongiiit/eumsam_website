@@ -142,6 +142,9 @@ async def create_gallery_album(
             unique_filename = f"{uuid.uuid4()}{file_extension}"
             file_path = f"{album_dir}/{unique_filename}"
             
+            # 데이터베이스에 저장할 상대 경로 (정적 파일 경로)
+            db_file_path = f"gallery/{album.id}/{unique_filename}"
+            
             print(f"파일 저장 경로: {file_path}")
             
             # 파일 저장
@@ -154,7 +157,7 @@ async def create_gallery_album(
             # 데이터베이스에 저장
             gallery_item = GalleryItem(
                 title=os.path.splitext(file.filename)[0],  # 확장자 제거한 파일명
-                file_path=file_path,
+                file_path=db_file_path,  # 데이터베이스에는 상대 경로 저장
                 file_type="image" if file.content_type.startswith('image/') else "video",
                 album_id=album.id,
                 uploader_id=current_user.id

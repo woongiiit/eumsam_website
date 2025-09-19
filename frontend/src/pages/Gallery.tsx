@@ -183,7 +183,7 @@ const Gallery = () => {
                       <>
                         {album.items[0].file_type === 'image' ? (
                           <img
-                            src={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/${album.items[0].file_path}`}
+                            src={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/static/gallery/${album.id}/${album.items[0].file_path.split('/').pop()}`}
                             alt={album.title}
                             className="w-full h-full object-cover group-hover:scale-110 transition-all duration-700 ease-out"
                             onError={(e) => {
