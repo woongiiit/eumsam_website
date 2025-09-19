@@ -62,7 +62,8 @@ const Gallery = () => {
     async () => {
       const params = selectedCategory ? { category: selectedCategory } : {}
       const response = await api.get('/gallery', { params })
-      return response.data
+      // API 응답이 배열인지 확인하고, 아니면 빈 배열 반환
+      return Array.isArray(response.data) ? response.data : []
     },
     {
       retry: false, // 403 오류 시 재시도하지 않음
@@ -172,7 +173,7 @@ const Gallery = () => {
         )}
 
         {/* 갤러리 그리드 */}
-        {albums && albums.length > 0 ? (
+        {albums && Array.isArray(albums) && albums.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {albums.map((album: GalleryAlbum) => (
               <div key={album.id} className="bg-[#121212] border border-[#2A2A2A] rounded-2xl overflow-hidden group shadow-sm hover:shadow-lg hover:bg-[#1A1A1A] transition-all duration-500">
@@ -182,7 +183,7 @@ const Gallery = () => {
                       <>
                         {album.items[0].file_type === 'image' ? (
                           <img
-                            src={`http://localhost:8000/${album.items[0].file_path}`}
+                            src={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/${album.items[0].file_path}`}
                             alt={album.title}
                             className="w-full h-full object-cover group-hover:scale-110 transition-all duration-700 ease-out"
                             onError={(e) => {
