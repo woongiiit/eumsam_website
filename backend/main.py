@@ -56,11 +56,18 @@ async def log_static_requests(request: Request, call_next):
     response = await call_next(request)
     return response
 
-# 환경변수로 정적 파일 경로 설정
+# 환경변수로 정적 파일 경로 설정 (Railway Volume 사용 시)
 STATIC_FILES_PATH = os.getenv("STATIC_FILES_PATH", "static")
+GALLERY_STORAGE_PATH = os.getenv("GALLERY_STORAGE_PATH", "static/gallery")
 
-# 정적 파일 마운트
-app.mount("/static", StaticFiles(directory=STATIC_FILES_PATH), name="static")
+# 갤러리 파일의 경우 별도 경로 사용
+if os.path.exists(GALLERY_STORAGE_PATH):
+    # Railway Volume이 마운트된 경우
+    app.mount("/static/gallery", StaticFiles(directory=GALLERY_STORAGE_PATH), name="gallery")
+    app.mount("/static", StaticFiles(directory=STATIC_FILES_PATH), name="static")
+else:
+    # 로컬 개발 환경
+    app.mount("/static", StaticFiles(directory=STATIC_FILES_PATH), name="static")
 
 # 정적 파일 요청 디버깅
 @app.middleware("http")
