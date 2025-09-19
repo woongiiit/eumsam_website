@@ -2,9 +2,15 @@ import axios from 'axios'
 
 // Railway 환경에서는 절대 URL 사용, 로컬에서는 상대 URL 사용
 const isProduction = import.meta.env.PROD
-const baseURL = isProduction 
-  ? `${import.meta.env.VITE_API_URL || 'https://eumsamwebsite-production.up.railway.app'}/api`
-  : '/api'
+let baseURL: string
+
+if (isProduction) {
+  const apiUrl = import.meta.env.VITE_API_URL || 'https://eumsamwebsite-production.up.railway.app'
+  // URL에 프로토콜이 없으면 https:// 추가
+  baseURL = apiUrl.startsWith('http') ? `${apiUrl}/api` : `https://${apiUrl}/api`
+} else {
+  baseURL = '/api'
+}
 
 console.log('API Base URL:', baseURL)
 console.log('VITE_API_URL:', import.meta.env.VITE_API_URL)

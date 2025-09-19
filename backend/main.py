@@ -86,6 +86,9 @@ async def proxy_frontend_post_requests(path: str, request: Request):
 async def handle_api_requests(path: str, request: Request):
     """프론트엔드에서 직접 API 호출하는 경우 처리"""
     print(f"API 요청 받음: {request.method} /api/{path}")
+    print(f"Request URL: {request.url}")
+    print(f"Request Headers: {dict(request.headers)}")
+    
     # 실제 API 라우터로 전달
     from fastapi import Request as FastAPIRequest
     return await app.router.handle(FastAPIRequest(scope=request.scope, receive=request.receive))
