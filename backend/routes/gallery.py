@@ -9,6 +9,9 @@ import os
 import uuid
 from datetime import datetime
 
+# 환경변수로 스토리지 경로 설정 (Railway Volume 사용 시)
+GALLERY_STORAGE_PATH = os.getenv("GALLERY_STORAGE_PATH", "static/gallery")
+
 router = APIRouter()
 
 @router.get("", response_model=List[GalleryAlbumResponse])
@@ -113,8 +116,8 @@ async def create_gallery_album(
     db.commit()
     db.refresh(album)
     
-    # 디렉토리 생성
-    album_dir = f"static/gallery/{album.id}"
+    # 디렉토리 생성 (환경변수 사용)
+    album_dir = f"{GALLERY_STORAGE_PATH}/{album.id}"
     print(f"앨범 디렉토리 생성: {album_dir}")
     os.makedirs(album_dir, exist_ok=True)
     print(f"디렉토리 생성 완료: {os.path.exists(album_dir)}")
@@ -206,7 +209,7 @@ async def delete_gallery_album(
         )
     
     # 파일들 삭제
-    album_dir = f"static/gallery/{album.id}"
+    album_dir = f"{GALLERY_STORAGE_PATH}/{album.id}"
     if os.path.exists(album_dir):
         for item in album.items:
             if os.path.exists(item.file_path):

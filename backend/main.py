@@ -56,8 +56,11 @@ async def log_static_requests(request: Request, call_next):
     response = await call_next(request)
     return response
 
+# 환경변수로 정적 파일 경로 설정
+STATIC_FILES_PATH = os.getenv("STATIC_FILES_PATH", "static")
+
 # 정적 파일 마운트
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory=STATIC_FILES_PATH), name="static")
 
 # 정적 파일 요청 디버깅
 @app.middleware("http")
