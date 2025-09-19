@@ -10,7 +10,7 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
-from models import Base, User, Post, Gallery, Application
+from models import Base, User, Post, GalleryAlbum, GalleryItem, Application
 import logging
 
 # 로깅 설정
@@ -100,55 +100,83 @@ def migrate_sqlite_to_postgres():
             except Exception as e:
                 logger.warning(f"게시글 {post[1]} 마이그레이션 실패: {e}")
         
-        # 갤러리 데이터 마이그레이션
-        logger.info("갤러리 데이터 마이그레이션 시작...")
-        sqlite_cursor.execute("SELECT * FROM gallery")
-        gallery_items = sqlite_cursor.fetchall()
+        # 갤러리 앨범 데이터 마이그레이션
+        logger.info("갤러리 앨범 데이터 마이그레이션 시작...")
+        try:
+            sqlite_cursor.execute("SELECT * FROM gallery_albums")
+            gallery_albums = sqlite_cursor.fetchall()
+            
+            for album in gallery_albums:
+                try:
+                    db.execute(text("""
+                        INSERT INTO gallery_albums (id, title, description, category, uploader_id, created_at)
+                        VALUES (:id, :title, :description, :category, :uploader_id, :created_at)
+                        ON CONFLICT (id) DO NOTHING
+                    """), {
+                        'id': album[0],
+                        'title': album[1],
+                        'description': album[2],
+                        'category': album[3],
+                        'uploader_id': album[4],
+                        'created_at': album[5]
+                    })
+                except Exception as e:
+                    logger.warning(f"갤러리 앨범 {album[1]} 마이그레이션 실패: {e}")
+        except Exception as e:
+            logger.info("갤러리 앨범 테이블이 없습니다. 건너뜁니다.")
         
-        for item in gallery_items:
-            try:
-                db.execute(text("""
-                    INSERT INTO gallery (id, title, description, image_path, uploaded_by, created_at, updated_at)
-                    VALUES (:id, :title, :description, :image_path, :uploaded_by, :created_at, :updated_at)
-                    ON CONFLICT (id) DO NOTHING
-                """), {
-                    'id': item[0],
-                    'title': item[1],
-                    'description': item[2],
-                    'image_path': item[3],
-                    'uploaded_by': item[4],
-                    'created_at': item[5],
-                    'updated_at': item[6]
-                })
-            except Exception as e:
-                logger.warning(f"갤러리 아이템 {item[1]} 마이그레이션 실패: {e}")
+        # 갤러리 아이템 데이터 마이그레이션
+        logger.info("갤러리 아이템 데이터 마이그레이션 시작...")
+        try:
+            sqlite_cursor.execute("SELECT * FROM gallery_items")
+            gallery_items = sqlite_cursor.fetchall()
+            
+            for item in gallery_items:
+                try:
+                    db.execute(text("""
+                        INSERT INTO gallery_items (id, title, file_path, file_type, album_id, uploader_id, created_at)
+                        VALUES (:id, :title, :file_path, :file_type, :album_id, :uploader_id, :created_at)
+                        ON CONFLICT (id) DO NOTHING
+                    """), {
+                        'id': item[0],
+                        'title': item[1],
+                        'file_path': item[2],
+                        'file_type': item[3],
+                        'album_id': item[4],
+                        'uploader_id': item[5],
+                        'created_at': item[6]
+                    })
+                except Exception as e:
+                    logger.warning(f"갤러리 아이템 {item[1]} 마이그레이션 실패: {e}")
+        except Exception as e:
+            logger.info("갤러리 아이템 테이블이 없습니다. 건너뜁니다.")
         
         # 입부신청 데이터 마이그레이션
         logger.info("입부신청 데이터 마이그레이션 시작...")
-        sqlite_cursor.execute("SELECT * FROM applications")
-        applications = sqlite_cursor.fetchall()
-        
-        for app in applications:
-            try:
-                db.execute(text("""
-                    INSERT INTO applications (id, name, student_id, major, phone, email, motivation, experience, status, created_at, updated_at)
-                    VALUES (:id, :name, :student_id, :major, :phone, :email, :motivation, :experience, :status, :created_at, :updated_at)
-                    ON CONFLICT (id) DO NOTHING
-                """), {
-                    'id': app[0],
-                    'name': app[1],
-                    'student_id': app[2],
-                    'major': app[3],
-                    'phone': app[4],
-                    'email': app[5],
-                    'motivation': app[6],
-                    'experience': app[7],
-                    'status': app[8],
-                    'created_at': app[9],
-                    'updated_at': app[10]
-                })
-            except Exception as e:
-                logger.warning(f"입부신청 {app[1]} 마이그레이션 실패: {e}")
+        try:
+            sqlite_cursor.execute("SELECT * FROM applications")
+            applications = sqlite_cursor.fetchall()
+            
+            for app in applications:
+                try:
+                    db.execute(text("""
+                        INSERT INTO applications (id, applicant_id, motivation, experience, instrument, status, created_at, reviewed_at)
+                        VALUES (:id, :applicant_id, :motivation, :experience, :instrument, :status, :created_at, :reviewed_at)
+                        ON CONFLICT (id) DO NOTHING
+                    """), {
+                        'id': app[0],
+                        'applicant_id': app[1],
+                        'motivation': app[2],
+                        'experience': app[3],
+                        'instrument': app[4],
+                        'status': app[5],
+                        'created_at': app[6],
+                        'reviewed_at': app[7]
+                    })
+                except Exception as e:
+                    logger.warning(f"입부신청 {app[0]} 마이그레이션 실패: {e}")
+        except Exception as e:
+            logger.info("입부신청 테이블이 없습니다. 건너뜁니다.")
         
         db.commit()
         logger.info("데이터 마이그레이션 완료!")
