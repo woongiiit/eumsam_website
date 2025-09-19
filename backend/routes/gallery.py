@@ -214,10 +214,43 @@ async def delete_gallery_album(
     # 파일들 삭제
     album_dir = f"{GALLERY_STORAGE_PATH}/{album.id}"
     if os.path.exists(album_dir):
+        print(f"앨범 디렉토리 삭제 시작: {album_dir}")
+        print(f"디렉토리 내용: {os.listdir(album_dir)}")
+        
+        # 각 파일 삭제
         for item in album.items:
-            if os.path.exists(item.file_path):
-                os.remove(item.file_path)
-        os.rmdir(album_dir)
+            # 실제 파일 경로 구성 (파일명만 추출)
+            filename = item.file_path.split('/')[-1]
+            actual_file_path = f"{album_dir}/{filename}"
+            print(f"파일 삭제 시도: {actual_file_path}")
+            
+            if os.path.exists(actual_file_path):
+                os.remove(actual_file_path)
+                print(f"파일 삭제 완료: {actual_file_path}")
+            else:
+                print(f"파일이 존재하지 않음: {actual_file_path}")
+        
+        # 디렉토리 내용 다시 확인
+        remaining_files = os.listdir(album_dir)
+        print(f"삭제 후 남은 파일들: {remaining_files}")
+        
+        # 남은 파일들이 있으면 강제 삭제
+        for remaining_file in remaining_files:
+            file_path = f"{album_dir}/{remaining_file}"
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+                print(f"남은 파일 강제 삭제: {file_path}")
+        
+        # 디렉토리 삭제
+        try:
+            os.rmdir(album_dir)
+            print(f"디렉토리 삭제 완료: {album_dir}")
+        except OSError as e:
+            print(f"디렉토리 삭제 실패: {e}")
+            # 강제로 디렉토리 삭제 (shutil 사용)
+            import shutil
+            shutil.rmtree(album_dir)
+            print(f"강제 디렉토리 삭제 완료: {album_dir}")
     
     # 데이터베이스에서 삭제 (cascade로 items도 함께 삭제됨)
     db.delete(album)
