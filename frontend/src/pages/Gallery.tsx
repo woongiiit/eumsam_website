@@ -219,7 +219,8 @@ const Gallery = () => {
                           e.stopPropagation()
                           handleDelete(album.id)
                         }}
-                        className="absolute top-3 left-3 p-2 bg-[#1A1A1A]/90 backdrop-blur-sm text-red-400 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-red-900/20 border border-red-400/30 shadow-sm"
+                        className="absolute top-3 left-3 p-2 bg-red-500/90 backdrop-blur-sm text-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-red-600/90 border border-red-400/30 shadow-lg"
+                        title="앨범 삭제"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>

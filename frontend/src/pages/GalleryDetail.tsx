@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useQuery } from 'react-query'
+import { useQuery, useMutation, useQueryClient } from 'react-query'
 import { useAuth } from '../contexts/AuthContext'
 import { api } from '../api'
-import { ArrowLeft, User, Clock, Grid3X3, ChevronLeft, ChevronRight, X, Camera } from 'lucide-react'
+import { ArrowLeft, User, Clock, Grid3X3, ChevronLeft, ChevronRight, X, Camera, Trash2 } from 'lucide-react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import toast from 'react-hot-toast'
@@ -42,6 +42,7 @@ const GalleryDetail = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { user } = useAuth()
+  const queryClient = useQueryClient()
   const [currentIndex, setCurrentIndex] = useState(0)
   const [showLightbox, setShowLightbox] = useState(false)
 
@@ -61,6 +62,28 @@ const GalleryDetail = () => {
       }
     }
   )
+
+  const deleteMutation = useMutation(
+    async (albumId: number) => {
+      await api.delete(`/gallery/${albumId}`)
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries(['gallery'])
+        toast.success('갤러리 앨범이 삭제되었습니다')
+        navigate('/gallery')
+      },
+      onError: (error: any) => {
+        toast.error(error.response?.data?.detail || '삭제에 실패했습니다')
+      }
+    }
+  )
+
+  const handleDelete = (albumId: number) => {
+    if (window.confirm('정말로 이 앨범을 삭제하시겠습니까? 앨범의 모든 사진이 함께 삭제됩니다.')) {
+      deleteMutation.mutate(albumId)
+    }
+  }
 
   const formatDate = (dateString: string) => {
     return format(new Date(dateString), 'MM/dd HH:mm', { locale: ko })
@@ -232,6 +255,16 @@ const GalleryDetail = () => {
                   {album.category}
                 </span>
               </div>
+              {user?.is_admin && (
+                <button
+                  onClick={() => handleDelete(album.id)}
+                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200 flex items-center space-x-2"
+                  disabled={deleteMutation.isLoading}
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>{deleteMutation.isLoading ? '삭제 중...' : '앨범 삭제'}</span>
+                </button>
+              )}
             </div>
             
             {album.description && (
