@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useNavigate } from 'react-router-dom'
-import { api } from '../lib/api'
+import { api } from '../lib'
 import { toast } from 'react-hot-toast'
 import { 
   User, 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from 'react-query'
-import { api } from '../lib/api'
+import { api } from '../lib'
 import { useAuth } from '../contexts/AuthContext'
 import { Plus, MessageSquare, Pin, Clock, User, ChevronLeft, ChevronRight } from 'lucide-react'
 import { format } from 'date-fns'
