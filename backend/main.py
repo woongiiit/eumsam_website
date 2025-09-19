@@ -59,6 +59,27 @@ async def log_static_requests(request: Request, call_next):
 # 정적 파일 마운트
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+# 정적 파일 요청 디버깅
+@app.middleware("http")
+async def debug_static_requests(request: Request, call_next):
+    if request.url.path.startswith("/static/"):
+        import os
+        file_path = request.url.path[1:]  # /static/ 제거
+        full_path = os.path.join("static", file_path[7:])  # static/ 제거
+        
+        print(f"정적 파일 요청: {request.url.path}")
+        print(f"파일 경로: {file_path}")
+        print(f"전체 경로: {full_path}")
+        print(f"파일 존재: {os.path.exists(full_path)}")
+        
+        if os.path.exists("static"):
+            print(f"static 디렉토리 내용: {os.listdir('static')}")
+            if os.path.exists("static/gallery"):
+                print(f"gallery 디렉토리 내용: {os.listdir('static/gallery')}")
+    
+    response = await call_next(request)
+    return response
+
 # 갤러리 파일 요청을 정적 파일로 리다이렉트 (제거됨)
 # 프론트엔드에서 직접 /static/ 경로로 요청하도록 수정
 
