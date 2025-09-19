@@ -93,12 +93,23 @@ async def handle_api_requests(path: str, request: Request):
     print(f"CORS Origin: {request.headers.get('origin', 'No origin')}")
     
     try:
-        # 실제 API 라우터로 전달
+        # 실제 API 라우터로 전달 - 올바른 방법
         from fastapi import Request as FastAPIRequest
-        return await app.router.handle(FastAPIRequest(scope=request.scope, receive=request.receive))
+        from fastapi.responses import JSONResponse
+        
+        # 새로운 Request 객체 생성
+        new_request = FastAPIRequest(scope=request.scope, receive=request.receive)
+        
+        # 라우터에 직접 전달
+        response = await app.router.dispatch(new_request)
+        return response
+        
     except Exception as e:
         print(f"API 요청 처리 중 오류 발생: {str(e)}")
-        raise
+        return JSONResponse(
+            status_code=500,
+            content={"detail": f"API 요청 처리 중 오류가 발생했습니다: {str(e)}"}
+        )
 
 @app.get("/")
 async def root():
