@@ -67,6 +67,13 @@ if os.path.exists(frontend_dist_path):
     shutil.copytree(frontend_dist_path, backend_static_path)
     app.mount("/", StaticFiles(directory=backend_static_path, html=True), name="frontend")
 
+# 프론트엔드 요청을 백엔드로 리다이렉트하는 임시 해결책
+@app.get("/eumsamwebsite-production.up.railway.app/api/{path:path}")
+async def proxy_frontend_requests(path: str):
+    """프론트엔드에서 잘못된 URL로 요청이 올 때 리다이렉트"""
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url=f"/api/{path}", status_code=301)
+
 @app.get("/")
 async def root():
     return {"message": "음샘 밴드 동아리 API 서버가 정상적으로 실행 중입니다!"}
