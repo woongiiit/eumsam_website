@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from 'react-query'
 import { useAuth } from '../contexts/AuthContext'
-import { api } from '@/lib'
+import { api } from '../lib/index'
 import { Users, UserCheck, UserX, FileText, Camera, Clock, Mail, Phone, ToggleLeft, ToggleRight, Search, ChevronLeft, ChevronRight, ArrowUpDown, ChevronDown, ChevronUp, Trash2, Music, BarChart3, TrendingUp, Activity } from 'lucide-react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
