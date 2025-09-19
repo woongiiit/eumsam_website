@@ -76,6 +76,11 @@ async def debug_static_requests(request: Request, call_next):
             print(f"static 디렉토리 내용: {os.listdir('static')}")
             if os.path.exists("static/gallery"):
                 print(f"gallery 디렉토리 내용: {os.listdir('static/gallery')}")
+                # 각 앨범 디렉토리 확인
+                for item in os.listdir("static/gallery"):
+                    album_path = os.path.join("static/gallery", item)
+                    if os.path.isdir(album_path):
+                        print(f"앨범 {item} 디렉토리 내용: {os.listdir(album_path)}")
     
     response = await call_next(request)
     return response

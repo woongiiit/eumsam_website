@@ -115,13 +115,17 @@ async def create_gallery_album(
     
     # 디렉토리 생성
     album_dir = f"static/gallery/{album.id}"
+    print(f"앨범 디렉토리 생성: {album_dir}")
     os.makedirs(album_dir, exist_ok=True)
+    print(f"디렉토리 생성 완료: {os.path.exists(album_dir)}")
     
     uploaded_files = []
     
     try:
         # 각 파일 처리
         for file in files:
+            print(f"파일 처리 시작: {file.filename}")
+            
             # 파일 크기 확인
             content = await file.read()
             if len(content) > MAX_FILE_SIZE:
@@ -135,9 +139,14 @@ async def create_gallery_album(
             unique_filename = f"{uuid.uuid4()}{file_extension}"
             file_path = f"{album_dir}/{unique_filename}"
             
+            print(f"파일 저장 경로: {file_path}")
+            
             # 파일 저장
             with open(file_path, "wb") as buffer:
                 buffer.write(content)
+            
+            print(f"파일 저장 완료: {os.path.exists(file_path)}")
+            print(f"파일 크기: {os.path.getsize(file_path)} bytes")
             
             # 데이터베이스에 저장
             gallery_item = GalleryItem(
