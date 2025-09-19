@@ -48,7 +48,8 @@ const Board = () => {
         ...(selectedCategory && { category: selectedCategory })
       }
       const response = await api.get('/posts', { params })
-      return response.data
+      // API 응답이 배열인지 확인하고, 아니면 빈 배열 반환
+      return Array.isArray(response.data) ? response.data : []
     },
     {
       retry: false, // 403 오류 시 재시도하지 않음
@@ -66,7 +67,8 @@ const Board = () => {
     async () => {
       const params = selectedCategory ? { category: selectedCategory, limit: 1000 } : { limit: 1000 }
       const response = await api.get('/posts', { params })
-      return response.data
+      // API 응답이 배열인지 확인하고, 아니면 빈 배열 반환
+      return Array.isArray(response.data) ? response.data : []
     },
     {
       retry: false, // 403 오류 시 재시도하지 않음
@@ -85,7 +87,7 @@ const Board = () => {
 
   // 전체 게시글 수 업데이트
   useEffect(() => {
-    if (allPosts) {
+    if (allPosts && Array.isArray(allPosts)) {
       setTotalPosts(allPosts.length)
     }
   }, [allPosts])
@@ -171,7 +173,7 @@ const Board = () => {
 
         {/* 게시글 목록 */}
         <div className="bg-[#121212] border border-[#2A2A2A] rounded-xl shadow-lg overflow-hidden">
-          {posts && posts.length > 0 ? (
+          {posts && Array.isArray(posts) && posts.length > 0 ? (
             <>
               <div className="divide-y divide-[#2A2A2A]">
                 {posts.map((post: Post) => (
