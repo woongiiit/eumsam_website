@@ -44,7 +44,7 @@ export default defineConfig({
   },
   preview: {
     host: '0.0.0.0',
-    port: process.env.PORT || 8080,
+    port: process.env.PORT || 3000,
     allowedHosts: [
       'eumsamfrontend-production.up.railway.app',
       'localhost',
@@ -53,5 +53,9 @@ export default defineConfig({
       '.up.railway.app',
       'all'
     ],
+    cors: true,
+    headers: {
+      'Cache-Control': 'public, max-age=31536000'
+    }
   },
 })
