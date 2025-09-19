@@ -26,12 +26,14 @@ app = FastAPI(
 )
 
 # CORS 설정
-allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,https://eumsaem-band.vercel.app").split(",")
+allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,https://eumsaem-band.vercel.app,https://eumsamfrontend-production.up.railway.app").split(",")
+print(f"CORS 허용된 Origin들: {allowed_origins}")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -88,10 +90,15 @@ async def handle_api_requests(path: str, request: Request):
     print(f"API 요청 받음: {request.method} /api/{path}")
     print(f"Request URL: {request.url}")
     print(f"Request Headers: {dict(request.headers)}")
+    print(f"CORS Origin: {request.headers.get('origin', 'No origin')}")
     
-    # 실제 API 라우터로 전달
-    from fastapi import Request as FastAPIRequest
-    return await app.router.handle(FastAPIRequest(scope=request.scope, receive=request.receive))
+    try:
+        # 실제 API 라우터로 전달
+        from fastapi import Request as FastAPIRequest
+        return await app.router.handle(FastAPIRequest(scope=request.scope, receive=request.receive))
+    except Exception as e:
+        print(f"API 요청 처리 중 오류 발생: {str(e)}")
+        raise
 
 @app.get("/")
 async def root():
