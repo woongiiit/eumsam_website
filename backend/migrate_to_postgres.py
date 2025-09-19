@@ -20,6 +20,20 @@ logger = logging.getLogger(__name__)
 def migrate_sqlite_to_postgres():
     """SQLite 데이터를 PostgreSQL로 마이그레이션"""
     
+    # SQLite 파일 존재 확인
+    if not os.path.exists('eumsaem.db'):
+        logger.info("SQLite 파일이 없습니다. 마이그레이션을 건너뛰고 PostgreSQL 테이블만 생성합니다.")
+        # PostgreSQL 연결만 하고 테이블 생성
+        database_url = os.getenv('DATABASE_URL')
+        if not database_url:
+            logger.error("DATABASE_URL 환경 변수가 설정되지 않았습니다.")
+            return
+        
+        engine = create_engine(database_url)
+        Base.metadata.create_all(bind=engine)
+        logger.info("PostgreSQL 테이블 생성 완료!")
+        return
+    
     # SQLite 연결
     sqlite_conn = sqlite3.connect('eumsaem.db')
     sqlite_cursor = sqlite_conn.cursor()
@@ -47,8 +61,8 @@ def migrate_sqlite_to_postgres():
         for user in users:
             try:
                 db.execute(text("""
-                    INSERT INTO users (id, username, email, hashed_password, is_active, is_admin, created_at, updated_at)
-                    VALUES (:id, :username, :email, :hashed_password, :is_active, :is_admin, :created_at, :updated_at)
+                    INSERT INTO users (id, username, email, hashed_password, is_active, is_admin, is_approved, created_at, updated_at)
+                    VALUES (:id, :username, :email, :hashed_password, :is_active, :is_admin, :is_approved, :created_at, :updated_at)
                     ON CONFLICT (id) DO NOTHING
                 """), {
                     'id': user[0],
@@ -57,8 +71,9 @@ def migrate_sqlite_to_postgres():
                     'hashed_password': user[3],
                     'is_active': user[4],
                     'is_admin': user[5],
-                    'created_at': user[6],
-                    'updated_at': user[7]
+                    'is_approved': user[6] if len(user) > 6 else True,  # 기본값 True
+                    'created_at': user[7] if len(user) > 7 else user[6],
+                    'updated_at': user[8] if len(user) > 8 else user[7]
                 })
             except Exception as e:
                 logger.warning(f"사용자 {user[1]} 마이그레이션 실패: {e}")

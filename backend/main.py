@@ -26,9 +26,10 @@ app = FastAPI(
 )
 
 # CORS 설정
+allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,https://eumsaem-band.vercel.app").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "https://eumsaem-band.vercel.app"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

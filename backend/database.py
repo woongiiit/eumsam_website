@@ -3,13 +3,18 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
 
-# SQLite 데이터베이스 설정
-DATABASE_URL = "sqlite:///./eumsaem.db"
+# 데이터베이스 설정 (환경변수 우선, 없으면 SQLite 사용)
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./eumsaem.db")
 
-engine = create_engine(
-    DATABASE_URL, 
-    connect_args={"check_same_thread": False}
-)
+# PostgreSQL과 SQLite에 따른 connect_args 설정
+if DATABASE_URL.startswith("postgresql"):
+    engine = create_engine(DATABASE_URL)
+else:
+    # SQLite용 설정
+    engine = create_engine(
+        DATABASE_URL, 
+        connect_args={"check_same_thread": False}
+    )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
