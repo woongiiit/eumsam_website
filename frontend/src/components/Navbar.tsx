@@ -91,7 +91,7 @@ const Navbar = () => {
             className="flex items-center"
           >
             <img 
-              src="/EUMSAM_LOGO.jpg" 
+              src={import.meta.env.BASE_URL + 'EUMSAM_LOGO.jpg'} 
               alt="음샘 로고" 
               className="w-32 h-32 object-contain"
               onError={(e) => {

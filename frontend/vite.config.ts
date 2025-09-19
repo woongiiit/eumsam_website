@@ -16,6 +16,14 @@ export default defineConfig({
     assetsDir: 'assets',
     outDir: 'dist',
     publicDir: 'public',
+    copyPublicDir: true,
+    rollupOptions: {
+      output: {
+        assetFileNames: 'assets/[name].[hash][extname]',
+        entryFileNames: 'assets/[name].[hash].js',
+        chunkFileNames: 'assets/[name].[hash].js',
+      }
+    }
   },
   server: {
     port: 3000,

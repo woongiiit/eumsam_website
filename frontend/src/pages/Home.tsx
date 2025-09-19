@@ -320,7 +320,7 @@ const Home = () => {
               <div key={index} className={`bg-[#121212] border border-[#2A2A2A] rounded-xl p-6 text-center hover:border-[#6DD3C7] transition-all duration-300 fade-in-section fade-in-delay-${index + 1} ${teamAnimation.isVisible ? 'visible' : ''}`}>
                 <div className="w-32 h-32 rounded-full mx-auto mb-4 overflow-hidden">
                   <img 
-                    src={`/Manager${index + 1}.jpg`} 
+                    src={`${import.meta.env.BASE_URL}Manager${index + 1}.jpg`} 
                     alt={member.name}
                     className="w-full h-full object-cover"
                   />
