@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { api } from '../lib/api'
+import { api } from '../lib/api.js'
 import { ArrowLeft, Save } from 'lucide-react'
 import toast from 'react-hot-toast'
 
