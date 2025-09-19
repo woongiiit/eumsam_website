@@ -9,7 +9,7 @@ const Footer = () => {
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center mb-4">
               <img 
-                src={import.meta.env.BASE_URL + 'EUMSAM_LOGO.jpg'} 
+                src="/EUMSAM_LOGO.jpg" 
                 alt="음샘 로고" 
                 className="w-16 h-16 object-contain"
                 onError={(e) => {

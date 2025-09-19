@@ -5,6 +5,7 @@ import path from 'path'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  base: '/',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -17,9 +18,16 @@ export default defineConfig({
     outDir: 'dist',
     publicDir: 'public',
     copyPublicDir: true,
+    emptyOutDir: true,
     rollupOptions: {
       output: {
-        assetFileNames: 'assets/[name].[hash][extname]',
+        assetFileNames: (assetInfo) => {
+          // 이미지 파일들은 루트에 유지
+          if (assetInfo.name && /\.(jpg|jpeg|png|gif|svg)$/.test(assetInfo.name)) {
+            return '[name][extname]'
+          }
+          return 'assets/[name].[hash][extname]'
+        },
         entryFileNames: 'assets/[name].[hash].js',
         chunkFileNames: 'assets/[name].[hash].js',
       }
