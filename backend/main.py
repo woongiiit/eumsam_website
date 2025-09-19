@@ -59,24 +59,8 @@ async def log_static_requests(request: Request, call_next):
 # 정적 파일 마운트
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# 갤러리 파일 요청을 정적 파일로 리다이렉트
-@app.get("/gallery/{file_path:path}")
-async def serve_gallery_file(file_path: str):
-    from fastapi.responses import RedirectResponse
-    import os
-    
-    # 파일 존재 여부 확인
-    static_file_path = f"static/gallery/{file_path}"
-    if os.path.exists(static_file_path):
-        print(f"파일 존재: {static_file_path}")
-        return RedirectResponse(url=f"/static/gallery/{file_path}", status_code=301)
-    else:
-        print(f"파일 없음: {static_file_path}")
-        print(f"현재 디렉토리: {os.getcwd()}")
-        print(f"static 디렉토리 내용: {os.listdir('static') if os.path.exists('static') else 'static 디렉토리 없음'}")
-        if os.path.exists('static/gallery'):
-            print(f"gallery 디렉토리 내용: {os.listdir('static/gallery')}")
-        return RedirectResponse(url=f"/static/gallery/{file_path}", status_code=301)
+# 갤러리 파일 요청을 정적 파일로 리다이렉트 (제거됨)
+# 프론트엔드에서 직접 /static/ 경로로 요청하도록 수정
 
 # 라우터 등록
 app.include_router(auth.router, prefix="/api/auth", tags=["인증"])
