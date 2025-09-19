@@ -42,6 +42,17 @@ if not os.path.exists("static"):
     os.makedirs("static")
 if not os.path.exists("static/gallery"):
     os.makedirs("static/gallery")
+
+# 정적 파일 요청 로깅을 위한 미들웨어
+@app.middleware("http")
+async def log_static_requests(request: Request, call_next):
+    if request.url.path.startswith("/static/"):
+        print(f"정적 파일 요청: {request.url.path}")
+        print(f"정적 파일 전체 URL: {request.url}")
+    
+    response = await call_next(request)
+    return response
+
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # 라우터 등록
