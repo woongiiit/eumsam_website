@@ -51,8 +51,7 @@ app.include_router(applications.router, prefix="/api/applications", tags=["입�
 app.include_router(application_form.router, prefix="/api/application-form", tags=["신청양식"])
 app.include_router(email_test.router, prefix="/api/email", tags=["이메일 테스트"])
 
-# 정적 파일 서빙 (프론트엔드 정적 파일들)
-app.mount("/", StaticFiles(directory="../frontend/dist", html=True), name="static")
+# 정적 파일 서빙은 프론트엔드 서비스에서 처리
 
 @app.get("/")
 async def root():
