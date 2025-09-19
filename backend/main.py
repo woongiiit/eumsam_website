@@ -51,7 +51,21 @@ app.include_router(applications.router, prefix="/api/applications", tags=["입�
 app.include_router(application_form.router, prefix="/api/application-form", tags=["신청양식"])
 app.include_router(email_test.router, prefix="/api/email", tags=["이메일 테스트"])
 
-# 정적 파일 서빙은 프론트엔드 서비스에서 처리
+# 정적 파일 서빙 (프론트엔드 정적 파일들)
+# Railway에서 프론트엔드 요청이 백엔드로 라우팅되는 경우를 대비
+import os
+import shutil
+
+# 프론트엔드 빌드 파일을 백엔드로 복사
+frontend_dist_path = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist')
+backend_static_path = os.path.join(os.path.dirname(__file__), 'frontend_dist')
+
+if os.path.exists(frontend_dist_path):
+    # 프론트엔드 빌드 파일을 백엔드 디렉토리로 복사
+    if os.path.exists(backend_static_path):
+        shutil.rmtree(backend_static_path)
+    shutil.copytree(frontend_dist_path, backend_static_path)
+    app.mount("/", StaticFiles(directory=backend_static_path, html=True), name="frontend")
 
 @app.get("/")
 async def root():
