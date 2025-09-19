@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useQuery } from 'react-query'
 import { useEffect } from 'react'
-import { api } from '@/lib/api'
+import { api } from '../lib/api'
 import { Music, Camera, UserPlus, ArrowRight, Heart, Star, Award, Calendar } from 'lucide-react'
 import { useScrollAnimation } from '../hooks/useScrollAnimation'
 
