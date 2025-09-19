@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { useAuth } from '../contexts/AuthContext'
-import { api } from '../lib/index'
+import { api } from '../api'
 import { Music, User, MessageSquare, CheckCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 

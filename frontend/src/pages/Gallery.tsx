@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from 'react-query'
 import { useAuth } from '../contexts/AuthContext'
-import { api } from '../lib/index'
+import { api } from '../api'
 import { Camera, Upload, Plus, Trash2, Image as ImageIcon, Video, User, Clock, Grid3X3 } from 'lucide-react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
