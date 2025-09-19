@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from 'react-query'
-import { api } from '../lib/api'
+import { api } from '@/lib/api'
 import { useAuth } from '../contexts/AuthContext'
 import { ArrowLeft, Edit, Trash2, Pin, PinOff, MessageSquare, Clock, User } from 'lucide-react'
 import { format } from 'date-fns'
