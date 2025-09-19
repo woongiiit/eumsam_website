@@ -13,6 +13,9 @@ export default defineConfig({
   build: {
     target: 'esnext',
     minify: 'esbuild',
+    assetsDir: 'assets',
+    outDir: 'dist',
+    publicDir: 'public',
   },
   server: {
     port: 3000,
