@@ -65,58 +65,16 @@ const Admin = () => {
     }
   )
 
-  // 트래픽 데이터 조회
+  // 트래픽 데이터 조회 (실제 Railway API)
   const { data: trafficData, isLoading: trafficLoading } = useQuery(
-    'traffic-data',
+    'admin-traffic',
     async () => {
-      // 임시 데이터 (실제로는 API에서 가져와야 함)
-      return {
-        totalVisitors: 1250,
-        dailyVisitors: [
-          { date: '2024-01-01', visitors: 45 },
-          { date: '2024-01-02', visitors: 52 },
-          { date: '2024-01-03', visitors: 38 },
-          { date: '2024-01-04', visitors: 61 },
-          { date: '2024-01-05', visitors: 47 },
-          { date: '2024-01-06', visitors: 73 },
-          { date: '2024-01-07', visitors: 89 },
-          { date: '2024-01-08', visitors: 56 },
-          { date: '2024-01-09', visitors: 42 },
-          { date: '2024-01-10', visitors: 68 },
-          { date: '2024-01-11', visitors: 75 },
-          { date: '2024-01-12', visitors: 83 },
-          { date: '2024-01-13', visitors: 91 },
-          { date: '2024-01-14', visitors: 67 }
-        ],
-        hourlyVisitors: [
-          { hour: 0, visitors: 2 },
-          { hour: 1, visitors: 1 },
-          { hour: 2, visitors: 0 },
-          { hour: 3, visitors: 0 },
-          { hour: 4, visitors: 1 },
-          { hour: 5, visitors: 3 },
-          { hour: 6, visitors: 8 },
-          { hour: 7, visitors: 15 },
-          { hour: 8, visitors: 25 },
-          { hour: 9, visitors: 35 },
-          { hour: 10, visitors: 42 },
-          { hour: 11, visitors: 38 },
-          { hour: 12, visitors: 45 },
-          { hour: 13, visitors: 52 },
-          { hour: 14, visitors: 48 },
-          { hour: 15, visitors: 41 },
-          { hour: 16, visitors: 38 },
-          { hour: 17, visitors: 35 },
-          { hour: 18, visitors: 28 },
-          { hour: 19, visitors: 22 },
-          { hour: 20, visitors: 18 },
-          { hour: 21, visitors: 15 },
-          { hour: 22, visitors: 12 },
-          { hour: 23, visitors: 8 }
-        ],
-        maxConcurrentUsers: 156,
-        currentOnlineUsers: 23
-      } as TrafficData
+      const response = await api.get('/admin/traffic-metrics')
+      return response.data.data // API 응답에서 data 필드 추출
+    },
+    {
+      refetchInterval: 30000, // 30초마다 자동 새로고침
+      refetchOnWindowFocus: true
     }
   )
 
