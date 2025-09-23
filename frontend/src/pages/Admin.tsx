@@ -278,6 +278,13 @@ const Admin = () => {
     {
       onSuccess: (data, { isActive, maxApplicants }) => {
         console.log('지원 활성화 상태 업데이트 성공:', data)
+        // 쿼리 캐시 즉시 업데이트
+        queryClient.setQueryData('support-settings', (oldData: any) => ({
+          ...oldData,
+          is_active: isActive,
+          max_applicants: maxApplicants,
+          current_applicants: data.current_applicants || 0
+        }))
         queryClient.invalidateQueries('support-settings')
         toast.success(`지원하기 기능이 ${isActive ? '활성화' : '비활성화'}되었습니다${maxApplicants > 0 ? ` (최대 ${maxApplicants}명)` : ''}`)
       },
@@ -1596,12 +1603,12 @@ const SupportTab = ({
               {isActive ? (
                 <ToggleRight 
                   className="w-8 h-8 text-green-500 cursor-pointer hover:text-green-600 transition-colors" 
-                  onClick={() => onToggleSupport(false, maxApplicants)}
+                  onClick={() => onToggleSupport(!isActive, maxApplicants)}
                 />
               ) : (
                 <ToggleLeft 
-                  className="w-8 h-8 text-gray-400 cursor-pointer hover:text-gray-500 transition-colors" 
-                  onClick={() => onToggleSupport(true, maxApplicants)}
+                  className="w-8 h-8 text-gray-400 cursor-pointer hover:text-gray-500 transition-colors"
+                  onClick={() => onToggleSupport(!isActive, maxApplicants)}
                 />
               )}
             </div>
@@ -1656,9 +1663,9 @@ const SupportTab = ({
       </div>
 
         {/* 설정 저장 버튼 */}
-      <div className="text-center">
+        <div className="text-center">
           <button
-            onClick={() => onToggleSupport(isActive, maxApplicants)}
+            onClick={() => onToggleSupport(!isActive, maxApplicants)}
             disabled={isUpdating}
             className={`w-full py-3 px-6 rounded-md font-medium transition-colors ${
               isActive
