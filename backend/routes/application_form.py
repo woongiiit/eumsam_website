@@ -78,34 +78,55 @@ async def update_application_form(
     current_user: User = Depends(get_current_admin_user)
 ):
     """신청 양식 업데이트 (관리자만)"""
-    form = db.query(ApplicationForm).filter(ApplicationForm.is_active == True).first()
-    
-    # 현재 지원자 수 계산
-    current_count = db.query(func.count(Application.id)).scalar()
-    
-    if not form:
-        # 새로운 양식 생성
-        form = ApplicationForm(
-            is_active=form_update.is_active,
-            max_applicants=form_update.max_applicants,
-            current_applicants=current_count,
-            form_questions=form_update.form_questions,
-            updated_by=current_user.id
+    try:
+        print(f"신청 양식 업데이트 요청 받음: {form_update}")
+        print(f"현재 사용자: {current_user.id}, {current_user.email}")
+        
+        form = db.query(ApplicationForm).filter(ApplicationForm.is_active == True).first()
+        print(f"기존 양식 조회 결과: {form}")
+        
+        # 현재 지원자 수 계산
+        current_count = db.query(func.count(Application.id)).scalar()
+        print(f"현재 지원자 수: {current_count}")
+        
+        if not form:
+            # 새로운 양식 생성
+            print("새로운 양식 생성 중...")
+            form = ApplicationForm(
+                is_active=form_update.is_active,
+                max_applicants=form_update.max_applicants,
+                current_applicants=current_count,
+                form_questions=form_update.form_questions,
+                updated_by=current_user.id
+            )
+            db.add(form)
+            print("새로운 양식 추가 완료")
+        else:
+            # 기존 양식 업데이트
+            print("기존 양식 업데이트 중...")
+            form.is_active = form_update.is_active
+            form.max_applicants = form_update.max_applicants
+            form.current_applicants = current_count
+            form.form_questions = form_update.form_questions
+            form.updated_by = current_user.id
+            form.updated_at = datetime.utcnow()
+            print("기존 양식 업데이트 완료")
+        
+        db.commit()
+        print("DB 커밋 완료")
+        db.refresh(form)
+        print(f"업데이트된 양식: {form}")
+        
+        return form
+    except Exception as e:
+        print(f"신청 양식 업데이트 오류: {str(e)}")
+        print(f"오류 타입: {type(e)}")
+        import traceback
+        print(f"상세 오류: {traceback.format_exc()}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"신청 양식 업데이트 중 오류가 발생했습니다: {str(e)}"
         )
-        db.add(form)
-    else:
-        # 기존 양식 업데이트
-        form.is_active = form_update.is_active
-        form.max_applicants = form_update.max_applicants
-        form.current_applicants = current_count
-        form.form_questions = form_update.form_questions
-        form.updated_by = current_user.id
-        form.updated_at = datetime.utcnow()
-    
-    db.commit()
-    db.refresh(form)
-    
-    return form
 
 @router.get("/questions")
 async def get_form_questions(
