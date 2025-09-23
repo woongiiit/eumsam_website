@@ -156,6 +156,8 @@ class IntegratedApplicationCreate(BaseModel):
 # 신청 양식 관련 스키마
 class ApplicationFormBase(BaseModel):
     is_active: bool = True
+    max_applicants: int = 0  # 0이면 무제한
+    current_applicants: int = 0
     form_questions: Optional[str] = None  # JSON 문자열
 
 class ApplicationFormCreate(ApplicationFormBase):

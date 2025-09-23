@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from database import get_db
-from models import ApplicationForm, User
+from models import ApplicationForm, User, Application
 from schemas import ApplicationFormResponse, ApplicationFormUpdate
 from auth import get_current_admin_user
 from datetime import datetime
@@ -20,6 +21,8 @@ async def get_application_form(
         # 기본 양식 생성
         form = ApplicationForm(
             is_active=True,
+            max_applicants=0,  # 무제한
+            current_applicants=0,
             form_questions=json.dumps([
                 {
                     "id": 1,
@@ -59,6 +62,12 @@ async def get_application_form(
         db.add(form)
         db.commit()
         db.refresh(form)
+    else:
+        # 현재 지원자 수 업데이트
+        current_count = db.query(func.count(Application.id)).scalar()
+        form.current_applicants = current_count
+        db.commit()
+        db.refresh(form)
     
     return form
 
@@ -71,10 +80,15 @@ async def update_application_form(
     """신청 양식 업데이트 (관리자만)"""
     form = db.query(ApplicationForm).filter(ApplicationForm.is_active == True).first()
     
+    # 현재 지원자 수 계산
+    current_count = db.query(func.count(Application.id)).scalar()
+    
     if not form:
         # 새로운 양식 생성
         form = ApplicationForm(
             is_active=form_update.is_active,
+            max_applicants=form_update.max_applicants,
+            current_applicants=current_count,
             form_questions=form_update.form_questions,
             updated_by=current_user.id
         )
@@ -82,6 +96,8 @@ async def update_application_form(
     else:
         # 기존 양식 업데이트
         form.is_active = form_update.is_active
+        form.max_applicants = form_update.max_applicants
+        form.current_applicants = current_count
         form.form_questions = form_update.form_questions
         form.updated_by = current_user.id
         form.updated_at = datetime.utcnow()
@@ -134,3 +150,39 @@ async def update_form_questions(
     db.refresh(form)
     
     return {"message": "신청 양식이 업데이트되었습니다", "questions": questions}
+
+@router.get("/status")
+async def get_application_status(
+    db: Session = Depends(get_db)
+):
+    """지원 가능 여부 확인"""
+    form = db.query(ApplicationForm).filter(ApplicationForm.is_active == True).first()
+    
+    if not form:
+        return {
+            "can_apply": False,
+            "reason": "지원 양식이 설정되지 않았습니다.",
+            "max_applicants": 0,
+            "current_applicants": 0
+        }
+    
+    # 현재 지원자 수 계산
+    current_count = db.query(func.count(Application.id)).scalar()
+    form.current_applicants = current_count
+    db.commit()
+    
+    # 지원 가능 여부 확인
+    if form.max_applicants > 0 and current_count >= form.max_applicants:
+        return {
+            "can_apply": False,
+            "reason": f"지원자 수가 한계에 도달했습니다. (현재: {current_count}/{form.max_applicants})",
+            "max_applicants": form.max_applicants,
+            "current_applicants": current_count
+        }
+    
+    return {
+        "can_apply": True,
+        "reason": "지원 가능합니다.",
+        "max_applicants": form.max_applicants,
+        "current_applicants": current_count
+    }

@@ -46,41 +46,33 @@ const Application = () => {
   
   const password = watch('password')
 
-  // 지원하기 활성화 상태 확인
+  // 지원하기 활성화 상태 및 지원자 수 제한 확인
   useEffect(() => {
-    const checkSupportStatus = () => {
-      const savedStatus = localStorage.getItem('support_active')
-      if (savedStatus !== null) {
-        const isActive = JSON.parse(savedStatus)
-        setIsSupportActive(isActive)
-      } else {
-        setIsSupportActive(true) // 기본값은 활성화
+    const checkSupportStatus = async () => {
+      try {
+        const response = await api.get('/application-form/status')
+        const { can_apply, reason, max_applicants, current_applicants } = response.data
+        
+        if (!can_apply) {
+          setIsSupportActive(false)
+          toast.error(reason)
+        } else {
+          setIsSupportActive(true)
+        }
+      } catch (error) {
+        console.error('지원 상태 확인 실패:', error)
+        // API 실패 시 로컬 스토리지에서 확인
+        const savedStatus = localStorage.getItem('support_active')
+        if (savedStatus !== null) {
+          const isActive = JSON.parse(savedStatus)
+          setIsSupportActive(isActive)
+        } else {
+          setIsSupportActive(true) // 기본값은 활성화
+        }
       }
     }
     
     checkSupportStatus()
-    
-    // 로컬 스토리지 변경 감지
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'support_active') {
-        setIsSupportActive(e.newValue ? JSON.parse(e.newValue) : true)
-      }
-    }
-    
-    // 커스텀 이벤트 감지
-    const handleCustomStorageChange = () => {
-      const savedStatus = localStorage.getItem('support_active')
-      const isActive = savedStatus ? JSON.parse(savedStatus) : true
-      setIsSupportActive(isActive)
-    }
-    
-    window.addEventListener('storage', handleStorageChange)
-    window.addEventListener('supportStatusChanged', handleCustomStorageChange)
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange)
-      window.removeEventListener('supportStatusChanged', handleCustomStorageChange)
-    }
   }, [])
 
   // 관리자가 설정한 양식 질문 로드
@@ -397,7 +389,7 @@ const Application = () => {
             {/* 회원가입 정보 섹션 */}
             <div className="mb-8 p-6 bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg">
               <div className="flex items-center mb-4">
-                <User className="w-5 h-5 text-[#6DD3C7] mr-2" />
+              <User className="w-5 h-5 text-[#6DD3C7] mr-2" />
                 <h3 className="font-semibold text-[#EAEAEA]">회원가입 정보</h3>
               </div>
               
@@ -595,8 +587,8 @@ const Application = () => {
               </div>
               <p className="text-[#B0B0B0] text-sm">
                 아래 질문들에 답변해주세요. 관리자 검토 후 승인되면 로그인할 수 있습니다.
-              </p>
-            </div>
+            </p>
+          </div>
             {formQuestions.map((question) => (
               <div key={question.id}>
                 <label htmlFor={`question_${question.id}`} className="block text-sm font-medium text-[#EAEAEA] mb-2">

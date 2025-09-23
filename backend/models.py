@@ -107,6 +107,8 @@ class ApplicationForm(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     is_active = Column(Boolean, default=True)  # 지원 활성화 여부
+    max_applicants = Column(Integer, default=0)  # 최대 지원자 수 (0이면 무제한)
+    current_applicants = Column(Integer, default=0)  # 현재 지원자 수
     form_questions = Column(Text)  # JSON 형태로 질문들 저장
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

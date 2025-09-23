@@ -100,10 +100,8 @@ const Admin = () => {
   const { data: supportSettings, isLoading: supportLoading } = useQuery(
     'support-settings',
     async () => {
-      // 백엔드 API가 구현되지 않았으므로 로컬 스토리지에서 직접 로드
-      const savedStatus = localStorage.getItem('support_active')
-      const isActive = savedStatus !== null ? JSON.parse(savedStatus) : true
-      return { is_active: isActive }
+      const response = await api.get('/application-form')
+      return response.data
     }
   )
 
@@ -269,20 +267,19 @@ const Admin = () => {
 
   // 지원 활성화 상태 업데이트
   const updateSupportMutation = useMutation(
-    async (isActive: boolean) => {
-      // 백엔드 API가 구현되지 않았으므로 로컬 스토리지에 직접 저장
-      localStorage.setItem('support_active', JSON.stringify(isActive))
-      // 커스텀 이벤트 발생시켜 같은 탭 내 컴포넌트들에 알림
-      window.dispatchEvent(new CustomEvent('supportStatusChanged'))
-      return { is_active: isActive }
+    async ({ isActive, maxApplicants }: { isActive: boolean; maxApplicants: number }) => {
+      const response = await api.put('/application-form', {
+        is_active: isActive,
+        max_applicants: maxApplicants,
+        form_questions: supportSettings?.form_questions
+      })
+      return response.data
     },
     {
-      onSuccess: (data, isActive) => {
+      onSuccess: (data, { isActive, maxApplicants }) => {
         console.log('지원 활성화 상태 업데이트 성공:', data)
-        // 쿼리 캐시 직접 업데이트
-        queryClient.setQueryData('support-settings', data)
         queryClient.invalidateQueries('support-settings')
-        toast.success(`지원하기 기능이 ${isActive ? '활성화' : '비활성화'}되었습니다`)
+        toast.success(`지원하기 기능이 ${isActive ? '활성화' : '비활성화'}되었습니다${maxApplicants > 0 ? ` (최대 ${maxApplicants}명)` : ''}`)
       },
       onError: (error: any) => {
         const errorMessage = error.response?.data?.detail || error.message || '설정 업데이트에 실패했습니다'
@@ -360,14 +357,14 @@ const Admin = () => {
     }
   }
 
-  const handleToggleSupport = (isActive: boolean) => {
+  const handleToggleSupport = (isActive: boolean, maxApplicants: number) => {
     const message = isActive 
-      ? '지원하기 기능을 활성화하시겠습니까? 사용자들이 지원 신청을 할 수 있게 됩니다.'
+      ? `지원하기 기능을 활성화하시겠습니까? 사용자들이 지원 신청을 할 수 있게 됩니다.${maxApplicants > 0 ? ` (최대 ${maxApplicants}명)` : ''}`
       : '지원하기 기능을 비활성화하시겠습니까? 사용자들이 지원 신청을 할 수 없게 됩니다.'
     
     if (window.confirm(message)) {
-      console.log('지원 활성화 상태 변경:', isActive)
-      updateSupportMutation.mutate(isActive)
+      console.log('지원 활성화 상태 변경:', isActive, '최대 지원자 수:', maxApplicants)
+      updateSupportMutation.mutate({ isActive, maxApplicants })
     }
   }
 
@@ -1539,11 +1536,22 @@ const SupportTab = ({
   onToggleSupport, 
   isUpdating 
 }: {
-  supportSettings: { is_active: boolean } | undefined
+  supportSettings: { is_active: boolean; max_applicants: number; current_applicants: number } | undefined
   supportLoading: boolean
-  onToggleSupport: (isActive: boolean) => void
+  onToggleSupport: (isActive: boolean, maxApplicants: number) => void
   isUpdating: boolean
 }) => {
+  const [maxApplicants, setMaxApplicants] = useState(0)
+  const [isActive, setIsActive] = useState(true)
+
+  // 설정이 로드되면 상태 업데이트
+  React.useEffect(() => {
+    if (supportSettings) {
+      setIsActive(supportSettings.is_active)
+      setMaxApplicants(supportSettings.max_applicants)
+    }
+  }, [supportSettings])
+
   if (supportLoading) {
     return (
       <div className="text-center py-8">
@@ -1553,7 +1561,8 @@ const SupportTab = ({
     )
   }
 
-  const isActive = supportSettings?.is_active ?? true
+  const currentApplicants = supportSettings?.current_applicants || 0
+  const maxApplicantsValue = supportSettings?.max_applicants || 0
 
   return (
     <div className="space-y-6">
@@ -1564,60 +1573,102 @@ const SupportTab = ({
         </p>
       </div>
 
-      <div className="max-w-md mx-auto">
+      <div className="max-w-2xl mx-auto space-y-6">
+        {/* 현재 상태 표시 */}
         <div className="bg-gray-50 rounded-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h4 className="text-lg font-medium text-gray-900">지원하기 기능</h4>
+              <h4 className="text-lg font-medium text-gray-900">현재 상태</h4>
               <p className="text-sm text-gray-600 mt-1">
-                현재 상태: <span className={`font-medium ${isActive ? 'text-green-600' : 'text-red-600'}`}>
+                지원 기능: <span className={`font-medium ${isActive ? 'text-green-600' : 'text-red-600'}`}>
                   {isActive ? '활성화됨' : '비활성화됨'}
                 </span>
               </p>
+              {maxApplicantsValue > 0 && (
+                <p className="text-sm text-gray-600 mt-1">
+                  지원자 수: <span className="font-medium text-blue-600">
+                    {currentApplicants}/{maxApplicantsValue}명
+                  </span>
+                </p>
+              )}
             </div>
             <div className="flex items-center">
               {isActive ? (
                 <ToggleRight 
                   className="w-8 h-8 text-green-500 cursor-pointer hover:text-green-600 transition-colors" 
-                  onClick={() => onToggleSupport(false)}
+                  onClick={() => onToggleSupport(false, maxApplicants)}
                 />
               ) : (
                 <ToggleLeft 
-                  className="w-8 h-8 text-gray-400 cursor-pointer hover:text-gray-500 transition-colors" 
-                  onClick={() => onToggleSupport(true)}
+                  className="w-8 h-8 text-gray-400 cursor-pointer hover:text-gray-500 transition-colors"
+                  onClick={() => onToggleSupport(true, maxApplicants)}
                 />
               )}
             </div>
           </div>
-
-          <div className="space-y-3 text-sm text-gray-600">
-            <div className="flex items-start space-x-2">
-              <div className={`w-2 h-2 rounded-full mt-2 ${isActive ? 'bg-green-400' : 'bg-red-400'}`}></div>
-              <div>
-                <strong>활성화 시:</strong> 사용자들이 네비게이션의 "지원하기" 버튼을 통해 지원 신청을 할 수 있습니다.
-              </div>
-            </div>
-            <div className="flex items-start space-x-2">
-              <div className={`w-2 h-2 rounded-full mt-2 ${!isActive ? 'bg-red-400' : 'bg-gray-300'}`}></div>
-              <div>
-                <strong>비활성화 시:</strong> 사용자들이 "지원하기" 버튼을 클릭하면 "지원 기간이 아닙니다" 알림이 표시됩니다.
-              </div>
-            </div>
-          </div>
-
-          {isUpdating && (
-            <div className="mt-4 text-center">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-500 mx-auto"></div>
-              <p className="text-xs text-gray-500 mt-1">업데이트 중...</p>
-            </div>
-          )}
         </div>
-      </div>
 
-      <div className="text-center">
-        <div className="inline-flex items-center space-x-2 text-sm text-gray-500">
-          <Clock className="w-4 h-4" />
-          <span>마지막 업데이트: {new Date().toLocaleString('ko-KR')}</span>
+        {/* 지원자 수 제한 설정 */}
+        <div className="bg-white border border-gray-200 rounded-lg p-6">
+          <h4 className="text-lg font-medium text-gray-900 mb-4">지원자 수 제한 설정</h4>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                최대 지원자 수
+              </label>
+              <div className="flex items-center space-x-4">
+                <input
+                  type="number"
+                  min="0"
+                  value={maxApplicants}
+                  onChange={(e) => setMaxApplicants(parseInt(e.target.value) || 0)}
+                  className="w-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="0"
+                />
+                <span className="text-sm text-gray-600">
+                  {maxApplicants === 0 ? '(무제한)' : `명`}
+                </span>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                0으로 설정하면 무제한으로 지원을 받을 수 있습니다.
+              </p>
+            </div>
+
+            {maxApplicants > 0 && (
+              <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm text-blue-700">
+                      <strong>현재 {currentApplicants}명</strong>이 지원했으며, 
+                      <strong> {maxApplicants - currentApplicants}명</strong>이 더 지원할 수 있습니다.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* 설정 저장 버튼 */}
+        <div className="text-center">
+          <button
+            onClick={() => onToggleSupport(isActive, maxApplicants)}
+            disabled={isUpdating}
+            className={`w-full py-3 px-6 rounded-md font-medium transition-colors ${
+              isActive
+                ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                : 'bg-green-100 text-green-700 hover:bg-green-200'
+            } ${isUpdating ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            {isUpdating ? '처리 중...' : (isActive ? '지원하기 비활성화' : '지원하기 활성화')}
+            {maxApplicants > 0 && ` (최대 ${maxApplicants}명)`}
+          </button>
         </div>
       </div>
     </div>

@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from database import get_db
-from models import User, Application
+from models import User, Application, ApplicationForm
 from schemas import UserCreate, UserLogin, UserResponse, Token, IntegratedApplicationCreate
 from auth import verify_password, get_password_hash, create_access_token, get_current_user
 from email_service import send_welcome_email
@@ -83,6 +84,16 @@ async def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
 async def create_integrated_application(application_data: IntegratedApplicationCreate, db: Session = Depends(get_db)):
     """통합 지원/가입 (회원가입 + 지원서)"""
     print(f"통합 지원/가입 요청 받음: {application_data.email}")
+    
+    # 지원 가능 여부 확인
+    form = db.query(ApplicationForm).filter(ApplicationForm.is_active == True).first()
+    if form and form.max_applicants > 0:
+        current_count = db.query(func.count(Application.id)).scalar()
+        if current_count >= form.max_applicants:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"지원자 수가 한계에 도달했습니다. (현재: {current_count}/{form.max_applicants})"
+            )
     
     # 이메일 중복 확인
     existing_user = db.query(User).filter(User.email == application_data.email).first()
