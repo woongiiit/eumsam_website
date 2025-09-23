@@ -177,15 +177,26 @@ async def get_application_status(
     db: Session = Depends(get_db)
 ):
     """지원 가능 여부 확인"""
+    # 활성화된 양식이 있는지 확인 (is_active = True)
     form = db.query(ApplicationForm).filter(ApplicationForm.is_active == True).first()
     
     if not form:
-        return {
-            "can_apply": False,
-            "reason": "지원 양식이 설정되지 않았습니다.",
-            "max_applicants": 0,
-            "current_applicants": 0
-        }
+        # 비활성화된 양식이라도 있는지 확인
+        inactive_form = db.query(ApplicationForm).first()
+        if inactive_form:
+            return {
+                "can_apply": False,
+                "reason": "지원하기 기능이 비활성화되었습니다.",
+                "max_applicants": inactive_form.max_applicants,
+                "current_applicants": inactive_form.current_applicants or 0
+            }
+        else:
+            return {
+                "can_apply": False,
+                "reason": "지원 양식이 설정되지 않았습니다.",
+                "max_applicants": 0,
+                "current_applicants": 0
+            }
     
     # 현재 지원자 수 계산
     current_count = db.query(func.count(Application.id)).scalar()
