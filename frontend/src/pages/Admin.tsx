@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from 'react-query'
 import { useAuth } from '../contexts/AuthContext'
 import { api } from '../api'
-import { Users, UserCheck, UserX, FileText, Camera, Clock, Mail, Phone, ToggleLeft, ToggleRight, Search, ChevronLeft, ChevronRight, ArrowUpDown, ChevronDown, ChevronUp, Trash2, Music, BarChart3, TrendingUp, Activity } from 'lucide-react'
+import { Users, UserCheck, UserX, FileText, Camera, Clock, Mail, Phone, ToggleLeft, ToggleRight, Search, ChevronLeft, ChevronRight, ArrowUpDown, ChevronDown, ChevronUp, Trash2, Music } from 'lucide-react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import toast from 'react-hot-toast'
-import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 
 interface User {
   id: number
@@ -37,24 +36,11 @@ interface Application {
   form_questions?: any[] // 신청 시점의 양식 질문들
 }
 
-interface TrafficData {
-  totalVisitors: number
-  dailyVisitors: Array<{
-    date: string
-    visitors: number
-  }>
-  hourlyVisitors: Array<{
-    hour: number
-    visitors: number
-  }>
-  maxConcurrentUsers: number
-  currentOnlineUsers: number
-}
 
 const Admin = () => {
   const { user } = useAuth()
   const queryClient = useQueryClient()
-  const [activeTab, setActiveTab] = useState<'users' | 'applications' | 'support' | 'form' | 'traffic'>('users')
+  const [activeTab, setActiveTab] = useState<'users' | 'applications' | 'support' | 'form'>('users')
 
   // 사용자 목록 조회
   const { data: users, isLoading: usersLoading } = useQuery(
@@ -65,18 +51,6 @@ const Admin = () => {
     }
   )
 
-  // 트래픽 데이터 조회 (실제 Railway API)
-  const { data: trafficData, isLoading: trafficLoading } = useQuery(
-    'admin-traffic',
-    async () => {
-      const response = await api.get('/admin/traffic-metrics')
-      return response.data.data // API 응답에서 data 필드 추출
-    },
-    {
-      refetchInterval: 30000, // 30초마다 자동 새로고침
-      refetchOnWindowFocus: true
-    }
-  )
 
   // 승인 대기 사용자 조회
   const { data: pendingUsers, isLoading: pendingLoading } = useQuery(
@@ -563,16 +537,6 @@ const Admin = () => {
               >
                 신청 양식 수정
               </button>
-              <button
-                onClick={() => setActiveTab('traffic')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === 'traffic'
-                    ? 'border-primary-500 text-primary-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                트래픽 관리
-              </button>
             </nav>
           </div>
 
@@ -615,11 +579,6 @@ const Admin = () => {
                 onDeleteQuestion={handleDeleteQuestion}
                 onMoveQuestion={handleMoveQuestion}
                 isUpdating={updateFormQuestionsMutation.isLoading}
-              />
-            ) : (
-              <TrafficTab
-                trafficData={trafficData}
-                trafficLoading={trafficLoading}
               />
             )}
           </div>
@@ -2174,214 +2133,5 @@ const FormPreview = ({ questions }: { questions: any[] | undefined }) => {
   )
 }
 
-// 트래픽 관리 탭
-const TrafficTab = ({ 
-  trafficData, 
-  trafficLoading 
-}: { 
-  trafficData: TrafficData | undefined
-  trafficLoading: boolean 
-}) => {
-  if (trafficLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">트래픽 데이터를 불러오는 중...</p>
-        </div>
-      </div>
-    )
-  }
-
-  if (!trafficData) {
-    return (
-      <div className="text-center py-12">
-        <BarChart3 className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">트래픽 데이터를 불러올 수 없습니다</h3>
-        <p className="text-gray-500">잠시 후 다시 시도해주세요.</p>
-      </div>
-    )
-  }
-
-  const COLORS = ['#6DD3C7', '#4ECDC4', '#45B7B8', '#3A9BC1', '#2E86AB']
-
-  return (
-    <div className="space-y-8">
-      {/* 헤더 */}
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">트래픽 관리</h2>
-        <p className="text-gray-600">사이트 방문자 통계 및 분석</p>
-      </div>
-
-      {/* 통계 카드 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex items-center">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <TrendingUp className="w-6 h-6 text-blue-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">총 방문자</p>
-              <p className="text-2xl font-bold text-gray-900">{trafficData.totalVisitors.toLocaleString()}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex items-center">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <Activity className="w-6 h-6 text-green-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">현재 온라인</p>
-              <p className="text-2xl font-bold text-gray-900">{trafficData.currentOnlineUsers}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex items-center">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <BarChart3 className="w-6 h-6 text-purple-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">최대 동시접속</p>
-              <p className="text-2xl font-bold text-gray-900">{trafficData.maxConcurrentUsers}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex items-center">
-            <div className="p-2 bg-orange-100 rounded-lg">
-              <Clock className="w-6 h-6 text-orange-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">평균 일일 방문자</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {Math.round(trafficData.dailyVisitors.reduce((sum, day) => sum + day.visitors, 0) / trafficData.dailyVisitors.length)}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 차트 섹션 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* 일별 방문자 수 차트 */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">일별 방문자 수</h3>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={trafficData.dailyVisitors}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="date" 
-                  tickFormatter={(value) => format(new Date(value), 'MM/dd', { locale: ko })}
-                />
-                <YAxis />
-                <Tooltip 
-                  labelFormatter={(value) => format(new Date(value), 'yyyy년 MM월 dd일', { locale: ko })}
-                  formatter={(value: number) => [value, '방문자']}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="visitors" 
-                  stroke="#6DD3C7" 
-                  fill="#6DD3C7" 
-                  fillOpacity={0.3}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* 시간대별 방문자 수 차트 */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">시간대별 방문자 수</h3>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={trafficData.hourlyVisitors}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="hour" 
-                  tickFormatter={(value) => `${value}시`}
-                />
-                <YAxis />
-                <Tooltip 
-                  formatter={(value: number) => [value, '방문자']}
-                  labelFormatter={(value) => `${value}시`}
-                />
-                <Bar dataKey="visitors" fill="#4ECDC4" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
-
-      {/* 추가 통계 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* 최근 7일 방문자 추이 */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">최근 7일 방문자 추이</h3>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={trafficData.dailyVisitors.slice(-7)}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="date" 
-                  tickFormatter={(value) => format(new Date(value), 'MM/dd', { locale: ko })}
-                />
-                <YAxis />
-                <Tooltip 
-                  labelFormatter={(value) => format(new Date(value), 'yyyy년 MM월 dd일', { locale: ko })}
-                  formatter={(value: number) => [value, '방문자']}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="visitors" 
-                  stroke="#6DD3C7" 
-                  strokeWidth={3}
-                  dot={{ fill: '#6DD3C7', strokeWidth: 2, r: 4 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* 시간대별 방문자 분포 */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">시간대별 방문자 분포</h3>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={[
-                    { name: '오전 (6-12시)', value: trafficData.hourlyVisitors.slice(6, 12).reduce((sum, h) => sum + h.visitors, 0) },
-                    { name: '오후 (12-18시)', value: trafficData.hourlyVisitors.slice(12, 18).reduce((sum, h) => sum + h.visitors, 0) },
-                    { name: '저녁 (18-24시)', value: trafficData.hourlyVisitors.slice(18, 24).reduce((sum, h) => sum + h.visitors, 0) },
-                    { name: '새벽 (0-6시)', value: trafficData.hourlyVisitors.slice(0, 6).reduce((sum, h) => sum + h.visitors, 0) }
-                  ]}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${((percent as number) * 100).toFixed(0)}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {[0, 1, 2, 3].map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value: number) => [value, '방문자']} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
 
 export default Admin
