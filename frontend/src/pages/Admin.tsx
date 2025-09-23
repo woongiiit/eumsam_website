@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from 'react-query'
 import { useAuth } from '../contexts/AuthContext'
 import { api } from '../api'
+import MembersTab from '../components/MembersTab'
 import { Users, UserCheck, UserX, FileText, Camera, Clock, Mail, Phone, ToggleLeft, ToggleRight, Search, ChevronLeft, ChevronRight, ArrowUpDown, ChevronDown, ChevronUp, Trash2, Music } from 'lucide-react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
@@ -40,13 +41,22 @@ interface Application {
 const Admin = () => {
   const { user } = useAuth()
   const queryClient = useQueryClient()
-  const [activeTab, setActiveTab] = useState<'users' | 'applications' | 'support' | 'form'>('users')
+  const [activeTab, setActiveTab] = useState<'members' | 'support' | 'form'>('members')
 
-  // 사용자 목록 조회
+  // 통합 사용자 목록 조회 (지원서 정보 포함)
   const { data: users, isLoading: usersLoading } = useQuery(
     'admin-users',
     async () => {
       const response = await api.get('/users')
+      return response.data
+    }
+  )
+
+  // 지원서 목록 조회
+  const { data: applications, isLoading: applicationsLoading } = useQuery(
+    'admin-applications',
+    async () => {
+      const response = await api.get('/applications')
       return response.data
     }
   )
@@ -61,14 +71,6 @@ const Admin = () => {
     }
   )
 
-  // 입부 신청 목록 조회
-  const { data: applications, isLoading: applicationsLoading } = useQuery(
-    'admin-applications',
-    async () => {
-      const response = await api.get('/applications')
-      return response.data
-    }
-  )
 
   // 지원 활성화 상태 조회
   const { data: supportSettings, isLoading: supportLoading } = useQuery(
@@ -484,35 +486,19 @@ const Admin = () => {
           <div className="border-b border-gray-200">
             <nav className="flex space-x-8 px-6">
               <button
-                onClick={() => setActiveTab('users')}
+                onClick={() => setActiveTab('members')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm relative ${
-                  activeTab === 'users'
+                  activeTab === 'members'
                     ? 'border-primary-500 text-primary-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700'
                 }`}
               >
                 <span className="flex items-center space-x-2">
+                  <Users className="w-4 h-4" />
                   <span>회원 관리</span>
                   {pendingUsersCount > 0 && (
                     <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-orange-500 rounded-full min-w-[20px] h-5">
                       {pendingUsersCount}
-                    </span>
-                  )}
-                </span>
-              </button>
-              <button
-                onClick={() => setActiveTab('applications')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm relative ${
-                  activeTab === 'applications'
-                    ? 'border-primary-500 text-primary-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                <span className="flex items-center space-x-2">
-                  <span>입부 신청 관리</span>
-                  {pendingApplicationsCount > 0 && (
-                    <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-500 rounded-full min-w-[20px] h-5">
-                      {pendingApplicationsCount}
                     </span>
                   )}
                 </span>
@@ -541,24 +527,18 @@ const Admin = () => {
           </div>
 
           <div className="p-6">
-            {activeTab === 'users' ? (
-              <UsersTab
+            {activeTab === 'members' ? (
+              <MembersTab
                 users={users}
-                pendingUsers={pendingUsers}
+                applications={applications}
                 usersLoading={usersLoading}
-                pendingLoading={pendingLoading}
+                applicationsLoading={applicationsLoading}
                 onApprove={handleApproveUser}
                 onReject={handleRejectUser}
                 onDelete={handleDeleteUser}
                 onUpdateRole={handleUpdateUserRole}
-                formatDate={formatDate}
-              />
-            ) : activeTab === 'applications' ? (
-              <ApplicationsTab
-                applications={applications}
-                applicationsLoading={applicationsLoading}
-                onUpdateStatus={handleUpdateApplication}
-                onDelete={handleDeleteApplication}
+                onUpdateApplicationStatus={handleUpdateApplication}
+                onDeleteApplication={handleDeleteApplication}
                 isDeleting={deleteApplicationMutation.isLoading}
                 formatDate={formatDate}
               />
@@ -589,27 +569,34 @@ const Admin = () => {
 }
 
 // 사용자 관리 탭
-const UsersTab = ({ 
+const MembersTab = ({ 
   users, 
-  pendingUsers, 
+  applications,
   usersLoading, 
-  pendingLoading, 
+  applicationsLoading,
   onApprove, 
   onReject, 
   onDelete,
   onUpdateRole,
+  onUpdateApplicationStatus,
+  onDeleteApplication,
+  isDeleting,
   formatDate 
 }: {
-  users: User[]
-  pendingUsers: User[]
+  users: User[] | undefined
+  applications: Application[] | undefined
   usersLoading: boolean
-  pendingLoading: boolean
+  applicationsLoading: boolean
   onApprove: (id: number) => void
   onReject: (id: number) => void
   onDelete: (id: number) => void
   onUpdateRole: (id: number, isAdmin: boolean) => void
+  onUpdateApplicationStatus: (applicationId: number, status: string) => void
+  onDeleteApplication: (applicationId: number) => void
+  isDeleting: boolean
   formatDate: (date: string) => string
 }) => {
+  const [expandedUser, setExpandedUser] = useState<number | null>(null)
   // 페이징 및 검색 상태
   const [searchTerm, setSearchTerm] = useState('')
   const [sortField, setSortField] = useState<'name' | 'email' | 'created_at' | 'status'>('created_at')
@@ -1027,473 +1014,6 @@ const UsersTab = ({
   )
 }
 
-// 입부 신청 관리 탭
-const ApplicationsTab = ({ 
-  applications, 
-  applicationsLoading, 
-  onUpdateStatus, 
-  onDelete,
-  isDeleting,
-  formatDate 
-}: {
-  applications: Application[]
-  applicationsLoading: boolean
-  onUpdateStatus: (id: number, status: string) => void
-  onDelete: (id: number) => void
-  isDeleting: boolean
-  formatDate: (date: string) => string
-}) => {
-  // 펼치기/접기 상태 관리
-  const [expandedApplications, setExpandedApplications] = useState<Set<number>>(new Set())
-  
-  // 페이징 상태 관리
-  const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState(10)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [sortField, setSortField] = useState<'created_at' | 'status' | 'applicant'>('created_at')
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
-
-  const toggleExpanded = (applicationId: number) => {
-    const newExpanded = new Set(expandedApplications)
-    if (newExpanded.has(applicationId)) {
-      newExpanded.delete(applicationId)
-    } else {
-      newExpanded.add(applicationId)
-    }
-    setExpandedApplications(newExpanded)
-  }
-
-  // 필터링된 신청서 목록
-  const filteredApplications = applications?.filter(application => {
-    if (!searchTerm) return true
-    const searchLower = searchTerm.toLowerCase()
-    return (
-      application.applicant.username.toLowerCase().includes(searchLower) ||
-      application.applicant.real_name.toLowerCase().includes(searchLower) ||
-      application.applicant.email.toLowerCase().includes(searchLower) ||
-      application.motivation.toLowerCase().includes(searchLower)
-    )
-  }) || []
-
-  // 정렬된 신청서 목록
-  const sortedApplications = [...filteredApplications].sort((a, b) => {
-    let aValue, bValue
-    
-    switch (sortField) {
-      case 'created_at':
-        aValue = new Date(a.created_at).getTime()
-        bValue = new Date(b.created_at).getTime()
-        break
-      case 'status':
-        aValue = a.status
-        bValue = b.status
-        break
-      case 'applicant':
-        aValue = a.applicant.real_name
-        bValue = b.applicant.real_name
-        break
-      default:
-        aValue = a.created_at
-        bValue = b.created_at
-    }
-    
-    if (sortOrder === 'asc') {
-      return aValue > bValue ? 1 : -1
-    } else {
-      return aValue < bValue ? 1 : -1
-    }
-  })
-
-  // 페이징 계산
-  const totalPages = Math.ceil(sortedApplications.length / pageSize)
-  const startIndex = (currentPage - 1) * pageSize
-  const endIndex = startIndex + pageSize
-  const paginatedApplications = sortedApplications.slice(startIndex, endIndex)
-
-  // 페이지 변경 핸들러
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page)
-    setExpandedApplications(new Set()) // 페이지 변경 시 모든 항목 접기
-  }
-
-  // 페이지 크기 변경 핸들러
-  const handlePageSizeChange = (newPageSize: number) => {
-    setPageSize(newPageSize)
-    setCurrentPage(1)
-    setExpandedApplications(new Set())
-  }
-
-  // 정렬 핸들러
-  const handleSort = (field: 'created_at' | 'status' | 'applicant') => {
-    if (sortField === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
-    } else {
-      setSortField(field)
-      setSortOrder('asc')
-    }
-    setCurrentPage(1)
-    setExpandedApplications(new Set())
-  }
-
-  if (applicationsLoading) {
-    return (
-      <div className="text-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto mb-4"></div>
-        <p className="text-gray-600">로딩 중...</p>
-      </div>
-    )
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800'
-      case 'approved':
-        return 'bg-green-100 text-green-800'
-      case 'rejected':
-        return 'bg-red-100 text-red-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
-    }
-  }
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return '검토 대기'
-      case 'approved':
-        return '승인됨'
-      case 'rejected':
-        return '거부됨'
-      default:
-        return status
-    }
-  }
-
-  // 신청 시점의 양식 데이터를 렌더링하는 함수
-  const renderFormData = (application: Application) => {
-    if (!application.form_data || !application.form_questions) {
-      return (
-        <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-          <div className="text-sm text-yellow-800">
-            ⚠️ 이 신청서는 이전 버전으로 제출되어 양식 데이터가 없습니다.
-            <br />
-            기본 필드(입부 동기, 음악 경험)만 표시됩니다.
-          </div>
-        </div>
-      )
-    }
-
-    return (
-      <div className="space-y-4">
-        {application.form_questions.map((question: any, index: number) => {
-          const fieldName = `question_${question.id}`
-          const answer = application.form_data[fieldName]
-          
-          if (!answer) return null
-
-          return (
-            <div key={question.id}>
-              <h5 className="font-medium text-gray-900 mb-2 flex items-center">
-                <FileText className="w-4 h-4 mr-2" />
-                {question.label}
-                {question.required && <span className="text-red-500 ml-1">*</span>}
-              </h5>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                {question.type === 'textarea' ? (
-                  <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
-                    {answer}
-                  </p>
-                ) : question.type === 'select' ? (
-                  <div className="flex items-center space-x-2">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      {question.options?.find((opt: any) => opt.value === answer)?.label || answer}
-                    </span>
-                  </div>
-                ) : (
-                  <p className="text-sm text-gray-700">
-                    {answer}
-                  </p>
-                )}
-              </div>
-            </div>
-          )
-        })}
-      </div>
-    )
-  }
-
-  return (
-    <div className="space-y-4">
-      {/* 검색 및 필터 */}
-      <div className="bg-white p-4 rounded-lg border border-gray-200">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <input
-                type="text"
-                placeholder="신청자명, 이메일, 내용으로 검색..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              />
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <select
-              value={pageSize}
-              onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            >
-              <option value={10}>10개씩</option>
-              <option value={20}>20개씩</option>
-              <option value={50}>50개씩</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* 신청서 목록 */}
-      {paginatedApplications && paginatedApplications.length > 0 ? (
-        paginatedApplications.map((application: Application) => {
-          const isExpanded = expandedApplications.has(application.id)
-          
-          return (
-            <div key={application.id} className="border border-gray-200 rounded-lg p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-3 mb-2">
-                    <h4 className="font-semibold text-gray-900">
-                      {application.applicant.real_name} ({application.applicant.username})
-                    </h4>
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(application.status)}`}>
-                      {getStatusLabel(application.status)}
-                    </span>
-                  </div>
-                  <div className="text-sm text-gray-600 space-y-1">
-                    <div>이메일: {application.applicant.email}</div>
-                    {application.applicant.student_id && (
-                      <div>학번: {application.applicant.student_id}</div>
-                    )}
-                    {application.instrument && (
-                      <div>주 악기: {application.instrument}</div>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => toggleExpanded(application.id)}
-                    className="flex items-center space-x-1 px-3 py-1 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
-                  >
-                    <span>{isExpanded ? '접기' : '펼치기'}</span>
-                    {isExpanded ? (
-                      <ChevronUp className="w-4 h-4" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4" />
-                    )}
-                  </button>
-                  
-                  {application.status === 'pending' && (
-                    <>
-                      <button
-                        onClick={() => onUpdateStatus(application.id, 'approved')}
-                        className="px-3 py-1 bg-green-500 text-white text-sm rounded hover:bg-green-600 transition-colors"
-                      >
-                        승인
-                      </button>
-                      <button
-                        onClick={() => onUpdateStatus(application.id, 'rejected')}
-                        className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600 transition-colors"
-                      >
-                        거부
-                      </button>
-                    </>
-                  )}
-                  
-                  {/* 삭제 버튼 */}
-                  <button
-                    onClick={() => onDelete(application.id)}
-                    disabled={isDeleting}
-                    className="flex items-center space-x-1 px-3 py-1 bg-gray-500 text-white text-sm rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="입부 신청 삭제"
-                  >
-                    {isDeleting ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        <span>삭제 중...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Trash2 className="w-4 h-4" />
-                        <span>삭제</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-              
-              {/* 펼쳐진 상태에서만 상세 내용 표시 */}
-              {isExpanded && (
-                <div className="space-y-4 border-t border-gray-200 pt-4">
-                  {/* 신청 시점의 양식 데이터 표시 */}
-                  {application.form_data && application.form_questions ? (
-                    <div>
-                      <div className="flex items-center space-x-2 mb-4">
-                        <h4 className="font-semibold text-gray-900">신청 시점의 양식 내용</h4>
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          신청일: {formatDate(application.created_at)}
-                        </span>
-                      </div>
-                      {renderFormData(application)}
-                    </div>
-                  ) : (
-                    /* 이전 버전 신청서 - 기본 필드 표시 */
-                    <div>
-                      <div className="flex items-center space-x-2 mb-4">
-                        <h4 className="font-semibold text-gray-900">신청 내용 (이전 버전)</h4>
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                          신청일: {formatDate(application.created_at)}
-                        </span>
-                      </div>
-                      
-                      <div className="space-y-4">
-                        <div>
-                          <h5 className="font-medium text-gray-900 mb-2 flex items-center">
-                            <FileText className="w-4 h-4 mr-2" />
-                            입부 동기
-                          </h5>
-                          <div className="bg-gray-50 p-4 rounded-lg">
-                            <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
-                              {application.motivation}
-                            </p>
-                          </div>
-                        </div>
-                        
-                        {application.experience && (
-                          <div>
-                            <h5 className="font-medium text-gray-900 mb-2 flex items-center">
-                              <Music className="w-4 h-4 mr-2" />
-                              음악 경험
-                            </h5>
-                            <div className="bg-gray-50 p-4 rounded-lg">
-                              <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
-                                {application.experience}
-                              </p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-              
-              <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
-                <div className="flex items-center space-x-1 text-xs text-gray-500">
-                  <Clock className="w-3 h-3" />
-                  <span>신청일: {formatDate(application.created_at)}</span>
-                </div>
-                {application.reviewed_at && (
-                  <div className="flex items-center space-x-1 text-xs text-gray-500">
-                    <Clock className="w-3 h-3" />
-                    <span>검토일: {formatDate(application.reviewed_at)}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )
-        })
-      ) : (
-        <div className="text-center py-8">
-          <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            {searchTerm ? '검색 결과가 없습니다' : '입부 신청이 없습니다'}
-          </h3>
-          <p className="text-gray-500">
-            {searchTerm ? '다른 검색어로 시도해보세요.' : '아직 제출된 입부 신청이 없습니다.'}
-          </p>
-        </div>
-      )}
-
-      {/* 페이징 네비게이션 */}
-      {totalPages > 1 && (
-        <div className="bg-white px-6 py-4 border border-gray-200 rounded-lg">
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-gray-700">
-              총 <span className="font-medium">{sortedApplications.length}</span>개의 신청서 중{' '}
-              <span className="font-medium">
-                {startIndex + 1}-{Math.min(endIndex, sortedApplications.length)}
-              </span>개 표시
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              {/* 이전 버튼 */}
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="p-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              
-              {/* 페이지 번호들 */}
-              <div className="flex items-center space-x-1">
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  let pageNum
-                  if (totalPages <= 5) {
-                    pageNum = i + 1
-                  } else if (currentPage <= 3) {
-                    pageNum = i + 1
-                  } else if (currentPage >= totalPages - 2) {
-                    pageNum = totalPages - 4 + i
-                  } else {
-                    pageNum = currentPage - 2 + i
-                  }
-                  
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => handlePageChange(pageNum)}
-                      className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                        currentPage === pageNum
-                          ? 'bg-primary-500 text-white'
-                          : 'text-gray-600 hover:bg-gray-100'
-                      }`}
-                    >
-                      {pageNum}
-                    </button>
-                  )
-                })}
-                
-                {totalPages > 5 && currentPage < totalPages - 2 && (
-                  <>
-                    <span className="text-gray-400">...</span>
-                    <button
-                      onClick={() => handlePageChange(totalPages)}
-                      className="px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                    >
-                      {totalPages}
-                    </button>
-                  </>
-                )}
-              </div>
-              
-              {/* 다음 버튼 */}
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="p-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
 
 // 지원 활성 관리 탭
 const SupportTab = ({ 
@@ -1567,7 +1087,7 @@ const SupportTab = ({
                 />
               ) : (
                 <ToggleLeft 
-                  className="w-8 h-8 text-gray-400 cursor-pointer hover:text-gray-500 transition-colors"
+                  className="w-8 h-8 text-gray-400 cursor-pointer hover:text-gray-500 transition-colors" 
                   onClick={() => onToggleSupport(!isActive, maxApplicants)}
                 />
               )}
@@ -1623,7 +1143,7 @@ const SupportTab = ({
       </div>
 
         {/* 설정 저장 버튼 */}
-        <div className="text-center">
+      <div className="text-center">
           <button
             onClick={() => onToggleSupport(isActive, maxApplicants)}
             disabled={isUpdating}
