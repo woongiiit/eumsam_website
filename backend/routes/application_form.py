@@ -218,3 +218,35 @@ async def get_application_status(
         "max_applicants": form.max_applicants,
         "current_applicants": current_count
     }
+
+@router.post("/reset-applicants")
+async def reset_applicants_count(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_admin_user)
+):
+    """지원자 수 초기화 (관리자만)"""
+    print(f"지원자 수 초기화 요청 받음 - 사용자: {current_user.id}, {current_user.email}")
+    
+    form = db.query(ApplicationForm).filter(ApplicationForm.is_active == True).first()
+    
+    if not form:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="활성화된 지원 양식을 찾을 수 없습니다"
+        )
+    
+    # 지원자 수를 0으로 초기화
+    form.current_applicants = 0
+    form.updated_at = datetime.utcnow()
+    form.updated_by = current_user.id
+    
+    db.commit()
+    db.refresh(form)
+    
+    print(f"지원자 수 초기화 완료: {form.current_applicants}/{form.max_applicants}")
+    
+    return {
+        "message": "지원자 수가 성공적으로 초기화되었습니다",
+        "current_applicants": form.current_applicants,
+        "max_applicants": form.max_applicants
+    }

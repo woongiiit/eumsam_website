@@ -263,6 +263,24 @@ const Admin = () => {
     }
   )
 
+  // 지원자 수 초기화
+  const resetApplicantsMutation = useMutation(
+    async () => {
+      const response = await api.post('/application-form/reset-applicants')
+      return response.data
+    },
+    {
+      onSuccess: (data) => {
+        queryClient.invalidateQueries('support-settings')
+        toast.success('지원자 수가 초기화되었습니다')
+      },
+      onError: (error: any) => {
+        const errorMessage = error.response?.data?.detail || error.message || '지원자 수 초기화에 실패했습니다'
+        toast.error(typeof errorMessage === 'string' ? errorMessage : '지원자 수 초기화에 실패했습니다')
+      }
+    }
+  )
+
   // 양식 질문 업데이트
   const updateFormQuestionsMutation = useMutation(
     async (questions: any[]) => {
@@ -675,21 +693,36 @@ const SupportTab = ({
 
             {maxApplicants > 0 && (
               <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                    </svg>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm text-blue-700">
+                        <strong>현재 {currentApplicants}명</strong>이 지원했으며, 
+                        <strong> {maxApplicants - currentApplicants}명</strong>이 더 지원할 수 있습니다.
+                      </p>
+                    </div>
+                  </div>
+                  {currentApplicants > 0 && (
+                    <button
+                      onClick={() => {
+                        if (window.confirm('지원자 수를 초기화하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다. 새 학기 시작 시에만 사용하세요.')) {
+                          resetApplicantsMutation.mutate()
+                        }
+                      }}
+                      disabled={resetApplicantsMutation.isLoading}
+                      className="px-3 py-1.5 text-xs font-medium text-red-700 bg-red-100 border border-red-200 rounded-md hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {resetApplicantsMutation.isLoading ? '초기화 중...' : '초기화'}
+                    </button>
+                  )}
+                </div>
               </div>
-                  <div className="ml-3">
-                    <p className="text-sm text-blue-700">
-                      <strong>현재 {currentApplicants}명</strong>이 지원했으며, 
-                      <strong> {maxApplicants - currentApplicants}명</strong>이 더 지원할 수 있습니다.
-                    </p>
-            </div>
-          </div>
-            </div>
-          )}
+            )}
         </div>
       </div>
 
