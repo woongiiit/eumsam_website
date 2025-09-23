@@ -23,6 +23,8 @@ class UserResponse(UserBase):
     id: int
     is_approved: bool
     is_admin: bool
+    is_deleted: bool
+    deleted_at: Optional[datetime] = None
     created_at: datetime
     
     class Config:

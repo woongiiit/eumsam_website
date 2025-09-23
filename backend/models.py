@@ -17,6 +17,8 @@ class User(Base):
     year = Column(Integer)  # 학년
     is_approved = Column(Boolean, default=False)
     is_admin = Column(Boolean, default=False)
+    is_deleted = Column(Boolean, default=False)
+    deleted_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     
     # 관계 설정 - foreign_keys 명시

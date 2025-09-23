@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from typing import List
 from database import get_db
 from models import User, Post, GalleryItem, Application
@@ -17,8 +18,8 @@ async def get_users(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_admin_user)
 ):
-    """모든 사용자 조회 (관리자만)"""
-    users = db.query(User).offset(skip).limit(limit).all()
+    """모든 사용자 조회 (관리자만) - 삭제된 사용자 제외"""
+    users = db.query(User).filter(User.is_deleted == False).offset(skip).limit(limit).all()
     return users
 
 @router.get("/pending", response_model=List[UserResponse])
@@ -26,8 +27,11 @@ async def get_pending_users(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_admin_user)
 ):
-    """승인 대기 사용자 조회 (관리자만)"""
-    pending_users = db.query(User).filter(User.is_approved == False).all()
+    """승인 대기 사용자 조회 (관리자만) - 삭제된 사용자 제외"""
+    pending_users = db.query(User).filter(
+        User.is_approved == False, 
+        User.is_deleted == False
+    ).all()
     return pending_users
 
 @router.post("/{user_id}/approve")
@@ -203,18 +207,46 @@ async def delete_user(
             detail="관리자 계정은 삭제할 수 없습니다"
         )
     
-    # 관련 데이터도 함께 삭제
-    # 게시글 삭제
-    db.query(Post).filter(Post.author_id == user.id).delete()
+    # 이미 삭제된 사용자인지 확인
+    if user.is_deleted:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="이미 삭제된 사용자입니다"
+        )
     
-    # 갤러리 아이템 삭제
-    db.query(GalleryItem).filter(GalleryItem.uploader_id == user.id).delete()
-    
-    # 입부 신청 삭제
-    db.query(Application).filter(Application.applicant_id == user.id).delete()
-    
-    # 사용자 삭제
-    db.delete(user)
+    # 소프트 삭제 실행
+    from datetime import datetime
+    user.is_deleted = True
+    user.deleted_at = datetime.utcnow()
     db.commit()
     
     return {"message": "회원이 성공적으로 삭제되었습니다"}
+
+@router.get("/stats")
+async def get_user_stats(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_admin_user)
+):
+    """사용자 통계 조회 (관리자만)"""
+    # 현재 회원 수 (승인되고 삭제되지 않은 사용자)
+    current_members = db.query(func.count(User.id)).filter(
+        User.is_approved == True,
+        User.is_deleted == False
+    ).scalar()
+    
+    # 누적 회원 수 (승인된 사용자, 삭제된 사용자 포함)
+    total_members = db.query(func.count(User.id)).filter(
+        User.is_approved == True
+    ).scalar()
+    
+    # 승인 대기 수
+    pending_members = db.query(func.count(User.id)).filter(
+        User.is_approved == False,
+        User.is_deleted == False
+    ).scalar()
+    
+    return {
+        "current_members": current_members,
+        "total_members": total_members,
+        "pending_members": pending_members
+    }

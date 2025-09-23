@@ -25,6 +25,8 @@ interface User {
   phone_number?: string
   is_approved: boolean
   is_admin: boolean
+  is_deleted: boolean
+  deleted_at?: string
   created_at: string
 }
 
@@ -135,8 +137,8 @@ const MembersTab: React.FC<MembersTabProps> = ({
   const paginatedUsers = sortedUsers.slice(startIndex, startIndex + pageSize)
 
   // 상태별 사용자 수 계산
-  const approvedCount = users?.filter(user => user.is_approved).length || 0
-  const pendingCount = users?.filter(user => !user.is_approved).length || 0
+  const currentMembers = users?.filter(user => user.is_approved && !user.is_deleted).length || 0
+  const pendingCount = users?.filter(user => !user.is_approved && !user.is_deleted).length || 0
   const applicationCount = applications?.length || 0
 
   const handleSort = (field: 'name' | 'email' | 'created_at' | 'status') => {
@@ -181,7 +183,7 @@ const MembersTab: React.FC<MembersTabProps> = ({
               <Users className="w-6 h-6 text-blue-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">전체 회원</p>
+              <p className="text-sm font-medium text-gray-600">누적 회원수</p>
               <p className="text-2xl font-bold text-gray-900">{users?.length || 0}</p>
             </div>
           </div>
@@ -193,8 +195,8 @@ const MembersTab: React.FC<MembersTabProps> = ({
               <UserCheck className="w-6 h-6 text-green-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">승인된 회원</p>
-              <p className="text-2xl font-bold text-gray-900">{approvedCount}</p>
+              <p className="text-sm font-medium text-gray-600">현재 회원</p>
+              <p className="text-2xl font-bold text-gray-900">{currentMembers}</p>
             </div>
           </div>
         </div>
