@@ -529,9 +529,6 @@ const Admin = () => {
                 onReject={handleRejectUser}
                 onDelete={handleDeleteUser}
                 onUpdateRole={handleUpdateUserRole}
-                onUpdateApplicationStatus={handleUpdateApplication}
-                onDeleteApplication={handleDeleteApplication}
-                isDeleting={deleteApplicationMutation.isLoading}
                 formatDate={formatDate}
               />
             ) : activeTab === 'support' ? (

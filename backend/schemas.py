@@ -23,7 +23,6 @@ class UserResponse(UserBase):
     id: int
     is_approved: bool
     is_admin: bool
-    application_status: str
     created_at: datetime
     
     class Config:

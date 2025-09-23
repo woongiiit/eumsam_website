@@ -25,7 +25,6 @@ interface User {
   phone_number?: string
   is_approved: boolean
   is_admin: boolean
-  application_status: string
   created_at: string
 }
 
@@ -48,9 +47,6 @@ interface MembersTabProps {
   onReject: (id: number) => void
   onDelete: (id: number) => void
   onUpdateRole: (id: number, isAdmin: boolean) => void
-  onUpdateApplicationStatus: (applicationId: number, status: string) => void
-  onDeleteApplication: (applicationId: number) => void
-  isDeleting: boolean
   formatDate: (date: string) => string
 }
 
@@ -63,9 +59,6 @@ const MembersTab: React.FC<MembersTabProps> = ({
   onReject,
   onDelete,
   onUpdateRole,
-  onUpdateApplicationStatus,
-  onDeleteApplication,
-  isDeleting,
   formatDate
 }) => {
   const [expandedUser, setExpandedUser] = useState<number | null>(null)
@@ -177,23 +170,6 @@ const MembersTab: React.FC<MembersTabProps> = ({
     }
   }
 
-  const getApplicationStatusBadge = (application: any) => {
-    if (!application) return null
-    
-    const statusMap = {
-      'pending': { color: 'bg-yellow-100 text-yellow-800', text: '검토중' },
-      'approved': { color: 'bg-green-100 text-green-800', text: '승인됨' },
-      'rejected': { color: 'bg-red-100 text-red-800', text: '거절됨' }
-    }
-    
-    const status = statusMap[application.status as keyof typeof statusMap] || statusMap.pending
-    
-    return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${status.color}`}>
-        {status.text}
-      </span>
-    )
-  }
 
   return (
     <div className="space-y-6">
@@ -354,10 +330,7 @@ const MembersTab: React.FC<MembersTabProps> = ({
                       <div className="text-sm text-gray-500">{user.major || '-'}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="space-y-1">
-                        {getStatusBadge(user)}
-                        {getApplicationStatusBadge(user.application)}
-                      </div>
+                      {getStatusBadge(user)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {formatDate(user.created_at)}
@@ -480,40 +453,11 @@ const MembersTab: React.FC<MembersTabProps> = ({
                                 )}
                                 <div className="flex items-center space-x-4">
                                   <div>
-                                    <span className="font-medium text-gray-600">지원 상태:</span>
-                                    <span className="ml-2">{getApplicationStatusBadge(user.application)}</span>
-                                  </div>
-                                  <div>
                                     <span className="font-medium text-gray-600">지원일:</span>
                                     <span className="ml-2 text-gray-900">{formatDate(user.application.created_at)}</span>
                                   </div>
                                 </div>
                                 
-                                {/* 지원서 관리 버튼 */}
-                                <div className="flex space-x-2 pt-2">
-                                  {user.application.status === 'pending' && (
-                                    <>
-                                      <button
-                                        onClick={() => onUpdateApplicationStatus(user.application.id, 'approved')}
-                                        className="px-3 py-1 bg-green-100 text-green-800 text-xs rounded hover:bg-green-200"
-                                      >
-                                        지원서 승인
-                                      </button>
-                                      <button
-                                        onClick={() => onUpdateApplicationStatus(user.application.id, 'rejected')}
-                                        className="px-3 py-1 bg-red-100 text-red-800 text-xs rounded hover:bg-red-200"
-                                      >
-                                        지원서 거절
-                                      </button>
-                                    </>
-                                  )}
-                                  <button
-                                    onClick={() => onDeleteApplication(user.application.id)}
-                                    className="px-3 py-1 bg-gray-100 text-gray-800 text-xs rounded hover:bg-gray-200"
-                                  >
-                                    지원서 삭제
-                                  </button>
-                                </div>
                               </div>
                             </div>
                           )}

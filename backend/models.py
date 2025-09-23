@@ -17,7 +17,6 @@ class User(Base):
     year = Column(Integer)  # 학년
     is_approved = Column(Boolean, default=False)
     is_admin = Column(Boolean, default=False)
-    application_status = Column(String, default="none")  # none, pending, approved, rejected
     created_at = Column(DateTime, default=datetime.utcnow)
     
     # 관계 설정 - foreign_keys 명시

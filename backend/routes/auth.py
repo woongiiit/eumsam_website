@@ -132,8 +132,7 @@ async def create_integrated_application(application_data: IntegratedApplicationC
         phone_number=application_data.phone_number,
         major=application_data.major,
         year=application_data.year,
-        is_approved=False,  # 관리자 승인 필요
-        application_status="pending"  # 지원 대기 상태
+        is_approved=False  # 관리자 승인 필요
     )
     
     db.add(db_user)
