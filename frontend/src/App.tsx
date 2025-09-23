@@ -12,6 +12,7 @@ import Admin from './pages/Admin'
 import MyPage from './pages/MyPage'
 import PostDetail from './pages/PostDetail'
 import CreatePost from './pages/CreatePost'
+import EditPost from './pages/EditPost'
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           <Route path="board" element={<Board />} />
           <Route path="board/:id" element={<PostDetail />} />
           <Route path="board/create" element={<CreatePost />} />
+          <Route path="board/:id/edit" element={<EditPost />} />
           <Route path="gallery" element={<Gallery />} />
           <Route path="gallery/:id" element={<GalleryDetail />} />
           <Route path="application" element={<Application />} />
