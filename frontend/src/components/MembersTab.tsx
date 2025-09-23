@@ -14,6 +14,7 @@ import {
   ChevronUp, 
   Trash2 
 } from 'lucide-react'
+import { api } from '../api'
 
 interface User {
   id: number
