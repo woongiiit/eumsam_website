@@ -561,7 +561,8 @@ const Admin = () => {
                 supportSettings={supportSettings}
                 supportLoading={supportLoading}
                 onToggleSupport={handleToggleSupport}
-                isUpdating={updateSupportMutation.isLoading}
+                isUpdating={updateSupportMutation.isLoading || resetApplicantsMutation.isLoading}
+                onResetApplicants={() => resetApplicantsMutation.mutate()}
               />
             ) : activeTab === 'form' ? (
               <FormTab
@@ -589,12 +590,14 @@ const SupportTab = ({
   supportSettings, 
   supportLoading, 
   onToggleSupport, 
-  isUpdating 
+  isUpdating,
+  onResetApplicants
 }: {
   supportSettings: { is_active: boolean; max_applicants: number; current_applicants: number } | undefined
   supportLoading: boolean
   onToggleSupport: (isActive: boolean, maxApplicants: number) => void
   isUpdating: boolean
+  onResetApplicants: () => void
 }) => {
   const [maxApplicants, setMaxApplicants] = useState(0)
 
@@ -711,13 +714,13 @@ const SupportTab = ({
                     <button
                       onClick={() => {
                         if (window.confirm('지원자 수를 초기화하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다. 새 학기 시작 시에만 사용하세요.')) {
-                          resetApplicantsMutation.mutate()
+                          onResetApplicants()
                         }
                       }}
-                      disabled={resetApplicantsMutation.isLoading}
+                      disabled={isUpdating}
                       className="px-3 py-1.5 text-xs font-medium text-red-700 bg-red-100 border border-red-200 rounded-md hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
-                      {resetApplicantsMutation.isLoading ? '초기화 중...' : '초기화'}
+                      {isUpdating ? '초기화 중...' : '초기화'}
                     </button>
                   )}
                 </div>
