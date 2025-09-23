@@ -580,7 +580,7 @@ const Admin = () => {
                 onMoveQuestion={handleMoveQuestion}
                 isUpdating={updateFormQuestionsMutation.isLoading}
               />
-            )}
+            ) : null}
           </div>
         </div>
       </div>
