@@ -20,9 +20,10 @@ class User(Base):
     application_status = Column(String, default="none")  # none, pending, approved, rejected
     created_at = Column(DateTime, default=datetime.utcnow)
     
-    # 관계 설정
+    # 관계 설정 - foreign_keys 명시
     posts = relationship("Post", back_populates="author")
-    applications = relationship("Application", back_populates="applicant")
+    applications = relationship("Application", back_populates="applicant", foreign_keys="Application.applicant_id")
+    reviewed_applications = relationship("Application", foreign_keys="Application.reviewed_by")
 
 class Post(Base):
     __tablename__ = "posts"
@@ -82,7 +83,7 @@ class Application(Base):
     reviewed_at = Column(DateTime)
     reviewed_by = Column(Integer, ForeignKey("users.id"))  # 검토한 관리자 ID
     
-    # 관계 설정
+    # 관계 설정 - foreign_keys 명시
     applicant = relationship("User", back_populates="applications", foreign_keys=[applicant_id])
     reviewer = relationship("User", foreign_keys=[reviewed_by])
 
