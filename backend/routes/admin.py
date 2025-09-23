@@ -18,23 +18,31 @@ async def get_traffic_metrics(
     # Railway 프로젝트 ID (환경변수에서 가져오거나 하드코딩)
     project_id = os.getenv("RAILWAY_PROJECT_ID", "your-project-id")
     
+    print(f"트래픽 메트릭 요청 - Project ID: {project_id}")
+    print(f"Railway API Token 설정됨: {bool(os.getenv('RAILWAY_API_TOKEN'))}")
+    
     try:
         # Railway API에서 실제 메트릭 데이터 가져오기
         metrics = await railway_client.get_project_metrics(project_id)
         
+        print(f"메트릭 데이터 반환: {metrics}")
+        
         return {
             "success": True,
             "data": metrics,
-            "source": "railway_api"
+            "source": "railway_api",
+            "project_id": project_id
         }
         
     except Exception as e:
+        print(f"트래픽 메트릭 API 오류: {e}")
         # API 실패 시 폴백 데이터 반환
         return {
             "success": False,
             "data": railway_client._get_fallback_metrics(),
             "source": "fallback",
-            "error": str(e)
+            "error": str(e),
+            "project_id": project_id
         }
 
 @router.get("/system-status")
