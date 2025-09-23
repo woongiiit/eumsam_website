@@ -339,6 +339,12 @@ const Admin = () => {
   }
 
   const handleToggleSupport = (isActive: boolean, maxApplicants: number) => {
+    // 이미 요청 중이면 중복 호출 방지
+    if (updateSupportMutation.isLoading) {
+      console.log('이미 요청 중입니다. 중복 호출을 방지합니다.')
+      return
+    }
+
     const message = isActive 
       ? `지원하기 기능을 활성화하시겠습니까? 사용자들이 지원 신청을 할 수 있게 됩니다.${maxApplicants > 0 ? ` (최대 ${maxApplicants}명)` : ''}`
       : '지원하기 기능을 비활성화하시겠습니까? 사용자들이 지원 신청을 할 수 없게 됩니다.'
@@ -1624,15 +1630,13 @@ const SupportTab = ({
         {/* 설정 저장 버튼 */}
         <div className="text-center">
           <button
-            onClick={() => onToggleSupport(!isActive, maxApplicants)}
+            onClick={() => onToggleSupport(isActive, maxApplicants)}
             disabled={isUpdating}
             className={`w-full py-3 px-6 rounded-md font-medium transition-colors ${
-              isActive
-                ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                : 'bg-green-100 text-green-700 hover:bg-green-200'
+              'bg-blue-100 text-blue-700 hover:bg-blue-200'
             } ${isUpdating ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            {isUpdating ? '처리 중...' : (isActive ? '지원하기 비활성화' : '지원하기 활성화')}
+            {isUpdating ? '처리 중...' : '설정 저장'}
             {maxApplicants > 0 && ` (최대 ${maxApplicants}명)`}
           </button>
         </div>
