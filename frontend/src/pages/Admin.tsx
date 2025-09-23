@@ -252,16 +252,8 @@ const Admin = () => {
     {
       onSuccess: (data, { isActive, maxApplicants }) => {
         console.log('지원 활성화 상태 업데이트 성공:', data)
-        // 쿼리 캐시 즉시 업데이트
-        queryClient.setQueryData('support-settings', (oldData: any) => ({
-          ...oldData,
-          is_active: isActive,
-          max_applicants: maxApplicants,
-          current_applicants: data.current_applicants || 0,
-          form_questions: data.form_questions || oldData?.form_questions
-        }))
-        // 쿼리 무효화로 서버에서 최신 데이터 가져오기
-        queryClient.invalidateQueries('support-settings')
+        // 쿼리 캐시 즉시 업데이트 (서버 응답 데이터 사용)
+        queryClient.setQueryData('support-settings', data)
         toast.success(`지원하기 기능이 ${isActive ? '활성화' : '비활성화'}되었습니다${maxApplicants > 0 ? ` (최대 ${maxApplicants}명)` : ''}`)
       },
       onError: (error: any) => {
@@ -1526,14 +1518,6 @@ const SupportTab = ({
 
   // 서버 상태를 직접 사용
   const isActive = supportSettings?.is_active ?? true
-  
-  // 디버깅을 위한 로그
-  console.log('SupportTab 렌더링:', {
-    supportSettings,
-    isActive,
-    maxApplicants,
-    maxApplicantsValue: supportSettings?.max_applicants || 0
-  })
 
   if (supportLoading) {
     return (
