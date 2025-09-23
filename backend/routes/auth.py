@@ -155,6 +155,14 @@ async def create_integrated_application(application_data: IntegratedApplicationC
     db.refresh(db_application)
     print(f"지원서 생성 완료: {db_application.id}")
     
+    # ApplicationForm의 current_applicants 증가
+    from models import ApplicationForm
+    form = db.query(ApplicationForm).filter(ApplicationForm.is_active == True).first()
+    if form:
+        form.current_applicants += 1
+        db.commit()
+        print(f"지원자 수 증가: {form.current_applicants}")
+    
     # 환영 이메일 전송 (비동기)
     try:
         user_email_data = {

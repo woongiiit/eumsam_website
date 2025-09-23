@@ -62,12 +62,7 @@ async def get_application_form(
         db.add(form)
         db.commit()
         db.refresh(form)
-    else:
-        # 현재 지원자 수 업데이트
-        current_count = db.query(func.count(Application.id)).scalar()
-        form.current_applicants = current_count
-        db.commit()
-        db.refresh(form)
+    # current_applicants 값은 초기화 기능을 위해 그대로 사용 (자동 계산하지 않음)
     
     return form
 
@@ -85,28 +80,24 @@ async def update_application_form(
         form = db.query(ApplicationForm).filter(ApplicationForm.is_active == True).first()
         print(f"기존 양식 조회 결과: {form}")
         
-        # 현재 지원자 수 계산
-        current_count = db.query(func.count(Application.id)).scalar()
-        print(f"현재 지원자 수: {current_count}")
-        
         if not form:
-            # 새로운 양식 생성
+            # 새로운 양식 생성 (초기 지원자 수는 0)
             print("새로운 양식 생성 중...")
             form = ApplicationForm(
                 is_active=form_update.is_active,
                 max_applicants=form_update.max_applicants,
-                current_applicants=current_count,
+                current_applicants=0,  # 새 양식은 0부터 시작
                 form_questions=form_update.form_questions,
                 updated_by=current_user.id
             )
             db.add(form)
             print("새로운 양식 추가 완료")
         else:
-            # 기존 양식 업데이트
+            # 기존 양식 업데이트 (current_applicants는 유지)
             print("기존 양식 업데이트 중...")
             form.is_active = form_update.is_active
             form.max_applicants = form_update.max_applicants
-            form.current_applicants = current_count
+            # current_applicants는 초기화 기능을 위해 그대로 유지
             form.form_questions = form_update.form_questions
             form.updated_by = current_user.id
             form.updated_at = datetime.utcnow()
@@ -198,10 +189,8 @@ async def get_application_status(
                 "current_applicants": 0
             }
     
-    # 현재 지원자 수 계산
-    current_count = db.query(func.count(Application.id)).scalar()
-    form.current_applicants = current_count
-    db.commit()
+    # 저장된 지원자 수 사용 (초기화 기능을 위해)
+    current_count = form.current_applicants
     
     # 지원 가능 여부 확인
     if form.max_applicants > 0 and current_count >= form.max_applicants:
