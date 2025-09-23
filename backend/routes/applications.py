@@ -110,25 +110,32 @@ async def update_application_status(
     
     application.status = application_update.status
     application.reviewed_at = datetime.utcnow()
+    application.reviewed_by = current_user.id
     
-    # 승인된 경우 사용자도 승인 처리
-    if application_update.status == "approved":
-        user = db.query(User).filter(User.id == application.applicant_id).first()
-        if user:
+    # 사용자 상태 업데이트
+    user = db.query(User).filter(User.id == application.applicant_id).first()
+    if user:
+        if application_update.status == "approved":
             user.is_approved = True
-        
-            # 입부승인 이메일 전송 (비동기)
-            try:
-                application_email_data = {
-                    'real_name': application.applicant.real_name,
-                    'email': application.applicant.email,
-                    'instrument': application.instrument,
-                    'motivation': application.motivation
-                }
-                asyncio.create_task(send_application_approval_email(application_email_data))
-            except Exception as e:
-                # 이메일 전송 실패는 승인을 막지 않음
-                print(f"Email sending failed: {e}")
+            user.application_status = "approved"
+        elif application_update.status == "rejected":
+            user.application_status = "rejected"
+        else:
+            user.application_status = "pending"
+    
+    # 승인된 경우에만 이메일 전송
+    if application_update.status == "approved":
+        try:
+            application_email_data = {
+                'real_name': application.applicant.real_name,
+                'email': application.applicant.email,
+                'instrument': application.instrument,
+                'motivation': application.motivation
+            }
+            asyncio.create_task(send_application_approval_email(application_email_data))
+        except Exception as e:
+            # 이메일 전송 실패는 승인을 막지 않음
+            print(f"Email sending failed: {e}")
     
     db.commit()
     db.refresh(application)

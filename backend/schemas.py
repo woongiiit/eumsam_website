@@ -23,6 +23,7 @@ class UserResponse(UserBase):
     id: int
     is_approved: bool
     is_admin: bool
+    application_status: str
     created_at: datetime
     
     class Config:
@@ -114,6 +115,7 @@ class ApplicationBase(BaseModel):
     motivation: str
     experience: Optional[str] = None
     instrument: Optional[str] = None
+    form_data: Optional[str] = None  # JSON 문자열
 
 class ApplicationCreate(ApplicationBase):
     pass
@@ -124,6 +126,7 @@ class ApplicationResponse(ApplicationBase):
     status: str
     created_at: datetime
     reviewed_at: Optional[datetime]
+    reviewed_by: Optional[int]
     applicant: UserResponse
     
     class Config:
@@ -131,6 +134,24 @@ class ApplicationResponse(ApplicationBase):
 
 class ApplicationUpdate(BaseModel):
     status: str
+
+# 통합 지원/가입 스키마
+class IntegratedApplicationCreate(BaseModel):
+    # 회원가입 정보
+    email: EmailStr
+    username: str
+    password: str
+    real_name: str
+    student_id: Optional[str] = None
+    phone_number: Optional[str] = None
+    major: Optional[str] = None
+    year: Optional[int] = None
+    
+    # 지원서 정보
+    motivation: str
+    experience: Optional[str] = None
+    instrument: Optional[str] = None
+    form_data: Optional[str] = None  # JSON 문자열
 
 # 신청 양식 관련 스키마
 class ApplicationFormBase(BaseModel):

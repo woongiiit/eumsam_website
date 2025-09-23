@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { useAuth } from '../contexts/AuthContext'
 import { api } from '../api'
-import { Music, User, MessageSquare, CheckCircle } from 'lucide-react'
+import { Music, User, MessageSquare, CheckCircle, Eye, EyeOff } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 interface FormQuestion {
@@ -19,7 +19,19 @@ interface FormQuestion {
 }
 
 interface ApplicationForm {
-  [key: string]: string
+  // 회원가입 정보
+  email: string
+  username: string
+  password: string
+  confirmPassword: string
+  real_name: string
+  student_id?: string
+  phone_number?: string
+  major?: string
+  year?: number
+  
+  // 지원서 정보
+  [key: string]: string | number | undefined
 }
 
 const Application = () => {
@@ -28,7 +40,11 @@ const Application = () => {
   const [formQuestions, setFormQuestions] = useState<FormQuestion[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSupportActive, setIsSupportActive] = useState(true)
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<ApplicationForm>()
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<ApplicationForm>()
+  
+  const password = watch('password')
 
   // 지원하기 활성화 상태 확인
   useEffect(() => {
@@ -153,36 +169,55 @@ const Application = () => {
 
   const onSubmit = async (data: ApplicationForm) => {
     try {
-      console.log('전송할 기본 데이터:', data)
+      console.log('전송할 통합 데이터:', data)
       console.log('현재 양식 질문들:', formQuestions)
       
-      // 질문이 없는 경우 최소 필수 데이터로 전송
-      if (!formQuestions || formQuestions.length === 0) {
-        const minimalData = {
-          motivation: '', // 서버가 요구하는 필수 필드 (빈 값)
-          experience: '',
-          instrument: ''
-        }
-        console.log('질문이 없어서 최소 필수 데이터로 전송:', minimalData)
-        const response = await api.post('/applications', minimalData)
-        console.log('서버 응답:', response.data)
-      } else {
-        // 질문이 있는 경우 매핑하여 전송
-        const basicData = {
-          motivation: data.question_1 || data.motivation || '음샘 동아리에 가입하고 싶습니다.',
-          experience: data.question_2 || data.experience || '',
-          instrument: data.question_3 || data.instrument || ''
-        }
-        
-        console.log('매핑된 기본 데이터:', basicData)
-        const response = await api.post('/applications', basicData)
-        console.log('서버 응답:', response.data)
+      // 비밀번호 확인
+      if (data.password !== data.confirmPassword) {
+        toast.error('비밀번호가 일치하지 않습니다.')
+        return
       }
       
+      // 추가 질문 답변을 JSON으로 변환
+      let formData = null
+      if (formQuestions && formQuestions.length > 0) {
+        const additionalAnswers: { [key: string]: string } = {}
+        formQuestions.forEach((question) => {
+          const fieldName = `question_${question.id}`
+          if (data[fieldName]) {
+            additionalAnswers[fieldName] = data[fieldName] as string
+          }
+        })
+        formData = JSON.stringify(additionalAnswers)
+      }
+      
+      // 통합 지원/가입 데이터 구성
+      const integratedData = {
+        // 회원가입 정보
+        email: data.email,
+        username: data.username,
+        password: data.password,
+        real_name: data.real_name,
+        student_id: data.student_id || null,
+        phone_number: data.phone_number || null,
+        major: data.major || null,
+        year: data.year || null,
+        
+        // 지원서 정보
+        motivation: data.question_1 || data.motivation || '음샘 동아리에 가입하고 싶습니다.',
+        experience: data.question_2 || data.experience || '',
+        instrument: data.question_3 || data.instrument || '',
+        form_data: formData
+      }
+      
+      console.log('통합 데이터 전송:', integratedData)
+      const response = await api.post('/auth/integrated-application', integratedData)
+      console.log('서버 응답:', response.data)
+      
       setIsSubmitted(true)
-      toast.success('입부 신청이 완료되었습니다!')
+      toast.success('지원/가입 신청이 완료되었습니다! 관리자 승인 후 로그인할 수 있습니다.')
     } catch (error: any) {
-      console.error('입부 신청 오류:', error)
+      console.error('통합 지원/가입 오류:', error)
       console.error('오류 응답:', error.response?.data)
       
       // 422 오류의 경우 상세한 오류 메시지 표시
@@ -209,8 +244,8 @@ const Application = () => {
           toast.error('입력 데이터에 오류가 있습니다. 다시 확인해주세요.')
         }
       } else {
-        const errorMessage = error.response?.data?.detail || error.message || '입부 신청에 실패했습니다'
-        toast.error(typeof errorMessage === 'string' ? errorMessage : '입부 신청에 실패했습니다')
+        const errorMessage = error.response?.data?.detail || error.message || '지원/가입 신청에 실패했습니다'
+        toast.error(typeof errorMessage === 'string' ? errorMessage : '지원/가입 신청에 실패했습니다')
       }
     }
   }
@@ -282,18 +317,19 @@ const Application = () => {
     )
   }
 
-  if (!user) {
+  // 로그인한 사용자는 기존 지원서 작성으로 리다이렉트
+  if (user) {
     return (
       <div className="min-h-screen bg-[#1A1A1A] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full text-center">
           <div className="bg-[#121212] border border-[#2A2A2A] py-8 px-6 shadow-xl rounded-2xl">
             <Music className="w-16 h-16 text-[#6DD3C7] mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-[#EAEAEA] mb-4">로그인이 필요합니다</h2>
+            <h2 className="text-2xl font-bold text-[#EAEAEA] mb-4">이미 로그인하셨습니다</h2>
             <p className="text-[#B0B0B0] mb-6">
-              입부 신청을 하시려면 먼저 로그인해주세요.
+              로그인한 사용자는 별도의 지원서 작성 페이지를 이용해주세요.
             </p>
-            <a href="/login" className="btn-primary">
-              로그인하기
+            <a href="/" className="btn-primary">
+              홈으로 돌아가기
             </a>
           </div>
         </div>
@@ -357,25 +393,210 @@ const Application = () => {
         </div>
 
         <div className="bg-[#121212] border border-[#2A2A2A] py-8 px-6 shadow-xl rounded-2xl">
-          <div className="mb-6 p-4 bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg">
-            <div className="flex items-center mb-2">
-              <User className="w-5 h-5 text-[#6DD3C7] mr-2" />
-              <h3 className="font-semibold text-[#EAEAEA]">신청자 정보</h3>
-            </div>
-            <p className="text-[#B0B0B0]">
-              <strong>이름:</strong> {user.real_name} ({user.username})
-              <br />
-              <strong>이메일:</strong> {user.email}
-              {user.student_id && (
-                <>
-                  <br />
-                  <strong>학번:</strong> {user.student_id}
-                </>
-              )}
-            </p>
-          </div>
-
           <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
+            {/* 회원가입 정보 섹션 */}
+            <div className="mb-8 p-6 bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg">
+              <div className="flex items-center mb-4">
+                <User className="w-5 h-5 text-[#6DD3C7] mr-2" />
+                <h3 className="font-semibold text-[#EAEAEA]">회원가입 정보</h3>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-[#EAEAEA] mb-2">
+                    이메일 주소 *
+                  </label>
+                  <input
+                    {...register('email', {
+                      required: '이메일을 입력해주세요',
+                      pattern: {
+                        value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                        message: '올바른 이메일 형식이 아닙니다'
+                      }
+                    })}
+                    type="email"
+                    className="input-field"
+                    placeholder="your@email.com"
+                  />
+                  {errors.email && (
+                    <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label htmlFor="username" className="block text-sm font-medium text-[#EAEAEA] mb-2">
+                    사용자명 *
+                  </label>
+                  <input
+                    {...register('username', {
+                      required: '사용자명을 입력해주세요',
+                      minLength: {
+                        value: 2,
+                        message: '사용자명은 최소 2자 이상이어야 합니다'
+                      }
+                    })}
+                    type="text"
+                    className="input-field"
+                    placeholder="사용자명을 입력하세요"
+                  />
+                  {errors.username && (
+                    <p className="mt-1 text-sm text-red-600">{errors.username.message}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div>
+                  <label htmlFor="real_name" className="block text-sm font-medium text-[#EAEAEA] mb-2">
+                    실명 *
+                  </label>
+                  <input
+                    {...register('real_name', {
+                      required: '실명을 입력해주세요'
+                    })}
+                    type="text"
+                    className="input-field"
+                    placeholder="실명을 입력하세요"
+                  />
+                  {errors.real_name && (
+                    <p className="mt-1 text-sm text-red-600">{errors.real_name.message}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label htmlFor="student_id" className="block text-sm font-medium text-[#EAEAEA] mb-2">
+                    학번
+                  </label>
+                  <input
+                    {...register('student_id')}
+                    type="text"
+                    className="input-field"
+                    placeholder="학번을 입력하세요"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div>
+                  <label htmlFor="phone_number" className="block text-sm font-medium text-[#EAEAEA] mb-2">
+                    전화번호
+                  </label>
+                  <input
+                    {...register('phone_number')}
+                    type="tel"
+                    className="input-field"
+                    placeholder="010-1234-5678"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="year" className="block text-sm font-medium text-[#EAEAEA] mb-2">
+                    학년
+                  </label>
+                  <select
+                    {...register('year', { valueAsNumber: true })}
+                    className="input-field"
+                  >
+                    <option value="">학년을 선택하세요</option>
+                    <option value={1}>1학년</option>
+                    <option value={2}>2학년</option>
+                    <option value={3}>3학년</option>
+                    <option value={4}>4학년</option>
+                    <option value={5}>대학원생</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <label htmlFor="major" className="block text-sm font-medium text-[#EAEAEA] mb-2">
+                  전공
+                </label>
+                <input
+                  {...register('major')}
+                  type="text"
+                  className="input-field"
+                  placeholder="전공을 입력하세요"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div>
+                  <label htmlFor="password" className="block text-sm font-medium text-[#EAEAEA] mb-2">
+                    비밀번호 *
+                  </label>
+                  <div className="relative">
+                    <input
+                      {...register('password', {
+                        required: '비밀번호를 입력해주세요',
+                        minLength: {
+                          value: 6,
+                          message: '비밀번호는 최소 6자 이상이어야 합니다'
+                        }
+                      })}
+                      type={showPassword ? 'text' : 'password'}
+                      className="input-field pr-10"
+                      placeholder="비밀번호를 입력하세요"
+                    />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-5 w-5 text-[#6DD3C7]" />
+                      ) : (
+                        <Eye className="h-5 w-5 text-[#6DD3C7]" />
+                      )}
+                    </button>
+                  </div>
+                  {errors.password && (
+                    <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-[#EAEAEA] mb-2">
+                    비밀번호 확인 *
+                  </label>
+                  <div className="relative">
+                    <input
+                      {...register('confirmPassword', {
+                        required: '비밀번호 확인을 입력해주세요',
+                        validate: value => value === password || '비밀번호가 일치하지 않습니다'
+                      })}
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      className="input-field pr-10"
+                      placeholder="비밀번호를 다시 입력하세요"
+                    />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-5 w-5 text-[#6DD3C7]" />
+                      ) : (
+                        <Eye className="h-5 w-5 text-[#6DD3C7]" />
+                      )}
+                    </button>
+                  </div>
+                  {errors.confirmPassword && (
+                    <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* 지원서 정보 섹션 */}
+            <div className="mb-6 p-4 bg-[#1A1A1A] border border-[#2A2A2A] rounded-lg">
+              <div className="flex items-center mb-2">
+                <Music className="w-5 h-5 text-[#6DD3C7] mr-2" />
+                <h3 className="font-semibold text-[#EAEAEA]">지원서 정보</h3>
+              </div>
+              <p className="text-[#B0B0B0] text-sm">
+                아래 질문들에 답변해주세요. 관리자 검토 후 승인되면 로그인할 수 있습니다.
+              </p>
+            </div>
             {formQuestions.map((question) => (
               <div key={question.id}>
                 <label htmlFor={`question_${question.id}`} className="block text-sm font-medium text-[#EAEAEA] mb-2">
@@ -410,7 +631,7 @@ const Application = () => {
                 disabled={isSubmitting}
                 className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSubmitting ? '신청 중...' : '입부 신청하기'}
+                {isSubmitting ? '신청 중...' : '지원/가입 신청하기'}
               </button>
             </div>
           </form>

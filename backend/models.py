@@ -17,6 +17,7 @@ class User(Base):
     year = Column(Integer)  # 학년
     is_approved = Column(Boolean, default=False)
     is_admin = Column(Boolean, default=False)
+    application_status = Column(String, default="none")  # none, pending, approved, rejected
     created_at = Column(DateTime, default=datetime.utcnow)
     
     # 관계 설정
@@ -75,12 +76,15 @@ class Application(Base):
     motivation = Column(Text, nullable=False)
     experience = Column(Text)
     instrument = Column(String)
+    form_data = Column(Text)  # JSON 형태로 추가 질문 답변 저장
     status = Column(String, default="pending")  # pending, approved, rejected
     created_at = Column(DateTime, default=datetime.utcnow)
     reviewed_at = Column(DateTime)
+    reviewed_by = Column(Integer, ForeignKey("users.id"))  # 검토한 관리자 ID
     
     # 관계 설정
-    applicant = relationship("User", back_populates="applications")
+    applicant = relationship("User", back_populates="applications", foreign_keys=[applicant_id])
+    reviewer = relationship("User", foreign_keys=[reviewed_by])
 
 class StudyGroup(Base):
     __tablename__ = "study_groups"

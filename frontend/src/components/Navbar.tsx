@@ -161,9 +161,6 @@ const Navbar = () => {
                 >
                   로그인
                 </Link>
-                <Link to="/register" className="btn-primary text-sm px-4 py-2">
-                  회원가입
-                </Link>
               </div>
             )}
           </div>
@@ -243,13 +240,6 @@ const Navbar = () => {
                       className="block px-3 py-2 text-base font-medium text-black hover:text-white hover:bg-[#6DD3C7] transition-colors"
                     >
                       로그인
-                    </Link>
-                    <Link
-                      to="/register"
-                      onClick={() => setIsMenuOpen(false)}
-                      className="block px-3 py-2 text-base font-medium text-white bg-[#6DD3C7] rounded-md"
-                    >
-                      회원가입
                     </Link>
                   </div>
                 )}

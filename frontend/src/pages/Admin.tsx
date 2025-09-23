@@ -19,6 +19,7 @@ interface User {
   year?: number
   is_approved: boolean
   is_admin: boolean
+  application_status: string
   created_at: string
 }
 
@@ -937,6 +938,9 @@ const UsersTab = ({
                       </div>
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      지원 상태
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       액션
                     </th>
                   </tr>
@@ -983,6 +987,30 @@ const UsersTab = ({
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {formatDate(user.created_at)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex space-x-2">
+                          {user.application_status === 'none' && (
+                            <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">
+                              미지원
+                            </span>
+                          )}
+                          {user.application_status === 'pending' && (
+                            <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
+                              지원 대기
+                            </span>
+                          )}
+                          {user.application_status === 'approved' && (
+                            <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                              지원 승인
+                            </span>
+                          )}
+                          {user.application_status === 'rejected' && (
+                            <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">
+                              지원 거부
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex space-x-2">

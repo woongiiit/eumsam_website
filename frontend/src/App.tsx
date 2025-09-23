@@ -7,7 +7,6 @@ import Gallery from './pages/Gallery'
 import GalleryDetail from './pages/GalleryDetail'
 import Application from './pages/Application'
 import Login from './pages/Login'
-import Register from './pages/Register'
 import Admin from './pages/Admin'
 import MyPage from './pages/MyPage'
 import PostDetail from './pages/PostDetail'
@@ -31,7 +30,6 @@ function App() {
           <Route path="mypage" element={<MyPage />} />
         </Route>
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
       </Routes>
     </AuthProvider>
   )
