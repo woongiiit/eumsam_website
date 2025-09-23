@@ -44,7 +44,21 @@ const Gallery = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('')
   const [showUploadModal, setShowUploadModal] = useState(false)
 
-  // ScrollToTop 컴포넌트가 전역적으로 처리하므로 제거
+  // 지원하기 활성화 상태 확인
+  const { data: supportStatus } = useQuery(
+    'support-status',
+    async () => {
+      const response = await api.get('/application-form/status')
+      return response.data
+    },
+    {
+      retry: false,
+      onError: () => {
+        // API 호출 실패 시 기본값 사용
+        console.log('지원하기 상태 확인 실패, 기본값 사용')
+      }
+    }
+  )
 
   const categories = [
     { value: '', label: '전체' },
@@ -293,13 +307,24 @@ const Gallery = () => {
               <h4 className="font-medium text-[#EAEAEA] mb-2">앨범을 보려면 로그인이 필요합니다</h4>
               <p className="text-[#B0B0B0] text-sm mb-4">
                 앨범 목록은 누구나 볼 수 있지만, 내용을 보려면 로그인 후 관리자 승인을 받아주세요.
+                <br />
+                로그인 후 '지원하기'를 통해 음샘에 지원하시면 승인 후 모든 기능을 이용하실 수 있습니다.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Link to="/login" className="btn-primary">
                   로그인하기
                 </Link>
-                <Link to="/register" className="btn-secondary">
-                  회원가입하기
+                <Link 
+                  to={supportStatus?.can_apply ? "/application" : "#"} 
+                  onClick={(e) => {
+                    if (!supportStatus?.can_apply) {
+                      e.preventDefault()
+                      alert(supportStatus?.reason || '지금은 음샘 지원 기간이 아닙니다!')
+                    }
+                  }}
+                  className="btn-secondary"
+                >
+                  지원하기
                 </Link>
               </div>
             </div>
@@ -314,7 +339,16 @@ const Gallery = () => {
               <p className="text-[#B0B0B0] text-sm mb-4">
                 현재 관리자 승인 대기 중입니다. 승인 후 앨범 내용을 볼 수 있습니다.
               </p>
-              <Link to="/application" className="btn-primary">
+              <Link 
+                to={supportStatus?.can_apply ? "/application" : "#"} 
+                onClick={(e) => {
+                  if (!supportStatus?.can_apply) {
+                    e.preventDefault()
+                    alert(supportStatus?.reason || '지금은 음샘 지원 기간이 아닙니다!')
+                  }
+                }}
+                className="btn-primary"
+              >
                 지원하기
               </Link>
             </div>
