@@ -156,7 +156,6 @@ async def create_integrated_application(application_data: IntegratedApplicationC
     print(f"지원서 생성 완료: {db_application.id}")
     
     # ApplicationForm의 current_applicants 증가
-    from models import ApplicationForm
     form = db.query(ApplicationForm).filter(ApplicationForm.is_active == True).first()
     if form:
         form.current_applicants += 1
