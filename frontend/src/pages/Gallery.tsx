@@ -44,10 +44,7 @@ const Gallery = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('')
   const [showUploadModal, setShowUploadModal] = useState(false)
 
-  // 페이지 로드 시 최상단으로 스크롤
-  useEffect(() => {
-    window.scrollTo(0, 0)
-  }, [])
+  // ScrollToTop 컴포넌트가 전역적으로 처리하므로 제거
 
   const categories = [
     { value: '', label: '전체' },

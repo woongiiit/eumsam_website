@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import Layout from './components/Layout'
+import ScrollToTop from './components/ScrollToTop'
 import Home from './pages/Home'
 import Board from './pages/Board'
 import Gallery from './pages/Gallery'
@@ -16,6 +17,7 @@ import EditPost from './pages/EditPost'
 function App() {
   return (
     <AuthProvider>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />

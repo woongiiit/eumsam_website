@@ -9,11 +9,7 @@ const Home = () => {
   const [isSupportActive, setIsSupportActive] = useState(true)
 
   // 페이지 로드 시 최상단으로 스크롤
-  useEffect(() => {
-    setTimeout(() => {
-      window.scrollTo(0, 0)
-    }, 1)
-  }, [])
+  // ScrollToTop 컴포넌트가 전역적으로 처리하므로 제거
 
   // 지원하기 활성화 상태 확인
   useEffect(() => {
