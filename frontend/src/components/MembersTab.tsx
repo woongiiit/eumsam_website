@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import { useQuery } from 'react-query'
 import { 
   Users, 
   UserCheck, 
@@ -14,7 +13,6 @@ import {
   ChevronUp, 
   Trash2 
 } from 'lucide-react'
-import { api } from '../api'
 
 interface User {
   id: number
@@ -47,6 +45,11 @@ interface MembersTabProps {
   applications: Application[] | undefined
   usersLoading: boolean
   applicationsLoading: boolean
+  userStats?: {
+    current_members: number
+    total_members: number
+    pending_members: number
+  }
   onApprove: (id: number) => void
   onReject: (id: number) => void
   onDelete: (id: number) => void
@@ -59,6 +62,7 @@ const MembersTab: React.FC<MembersTabProps> = ({
   applications,
   usersLoading,
   applicationsLoading,
+  userStats,
   onApprove,
   onReject,
   onDelete,
@@ -137,12 +141,6 @@ const MembersTab: React.FC<MembersTabProps> = ({
   const totalPages = Math.ceil(sortedUsers.length / pageSize)
   const startIndex = (currentPage - 1) * pageSize
   const paginatedUsers = sortedUsers.slice(startIndex, startIndex + pageSize)
-
-  // 백엔드 통계 API에서 데이터 가져오기
-  const { data: userStats } = useQuery('user-stats', async () => {
-    const response = await api.get('/users/stats')
-    return response.data
-  })
 
   // 상태별 사용자 수 계산
   const currentMembers = userStats?.current_members || 0

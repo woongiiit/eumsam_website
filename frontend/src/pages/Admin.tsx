@@ -52,6 +52,12 @@ const Admin = () => {
     }
   )
 
+  // 사용자 통계 조회
+  const { data: userStats } = useQuery('user-stats', async () => {
+    const response = await api.get('/users/stats')
+    return response.data
+  })
+
   // 지원서 목록 조회
   const { data: applications, isLoading: applicationsLoading } = useQuery(
     'admin-applications',
@@ -525,6 +531,7 @@ const Admin = () => {
                 applications={applications}
                 usersLoading={usersLoading}
                 applicationsLoading={applicationsLoading}
+                userStats={userStats}
                 onApprove={handleApproveUser}
                 onReject={handleRejectUser}
                 onDelete={handleDeleteUser}
