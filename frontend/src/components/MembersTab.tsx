@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useQuery } from 'react-query'
 import { 
   Users, 
   UserCheck, 
@@ -136,9 +137,16 @@ const MembersTab: React.FC<MembersTabProps> = ({
   const startIndex = (currentPage - 1) * pageSize
   const paginatedUsers = sortedUsers.slice(startIndex, startIndex + pageSize)
 
+  // 백엔드 통계 API에서 데이터 가져오기
+  const { data: userStats } = useQuery('user-stats', async () => {
+    const response = await api.get('/users/stats')
+    return response.data
+  })
+
   // 상태별 사용자 수 계산
-  const currentMembers = users?.filter(user => user.is_approved && !(user.is_deleted || false)).length || 0
-  const pendingCount = users?.filter(user => !user.is_approved && !(user.is_deleted || false)).length || 0
+  const currentMembers = userStats?.current_members || 0
+  const totalMembers = userStats?.total_members || 0
+  const pendingCount = userStats?.pending_members || 0
   const applicationCount = applications?.length || 0
 
   const handleSort = (field: 'name' | 'email' | 'created_at' | 'status') => {
@@ -184,7 +192,7 @@ const MembersTab: React.FC<MembersTabProps> = ({
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">누적 회원수</p>
-              <p className="text-2xl font-bold text-gray-900">{users?.length || 0}</p>
+              <p className="text-2xl font-bold text-gray-900">{totalMembers}</p>
             </div>
           </div>
         </div>
