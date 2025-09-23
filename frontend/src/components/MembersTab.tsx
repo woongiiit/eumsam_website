@@ -137,8 +137,8 @@ const MembersTab: React.FC<MembersTabProps> = ({
   const paginatedUsers = sortedUsers.slice(startIndex, startIndex + pageSize)
 
   // 상태별 사용자 수 계산
-  const currentMembers = users?.filter(user => user.is_approved && !user.is_deleted).length || 0
-  const pendingCount = users?.filter(user => !user.is_approved && !user.is_deleted).length || 0
+  const currentMembers = users?.filter(user => user.is_approved && !(user.is_deleted || false)).length || 0
+  const pendingCount = users?.filter(user => !user.is_approved && !(user.is_deleted || false)).length || 0
   const applicationCount = applications?.length || 0
 
   const handleSort = (field: 'name' | 'email' | 'created_at' | 'status') => {

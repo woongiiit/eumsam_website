@@ -19,7 +19,13 @@ async def get_users(
     current_user: User = Depends(get_current_admin_user)
 ):
     """모든 사용자 조회 (관리자만) - 삭제된 사용자 제외"""
-    users = db.query(User).filter(User.is_deleted == False).offset(skip).limit(limit).all()
+    try:
+        # is_deleted 필드가 있는지 확인
+        users = db.query(User).filter(User.is_deleted == False).offset(skip).limit(limit).all()
+    except Exception as e:
+        # is_deleted 필드가 없으면 모든 사용자 조회
+        print(f"is_deleted 필드 없음, 모든 사용자 조회: {e}")
+        users = db.query(User).offset(skip).limit(limit).all()
     return users
 
 @router.get("/pending", response_model=List[UserResponse])
@@ -28,10 +34,16 @@ async def get_pending_users(
     current_user: User = Depends(get_current_admin_user)
 ):
     """승인 대기 사용자 조회 (관리자만) - 삭제된 사용자 제외"""
-    pending_users = db.query(User).filter(
-        User.is_approved == False, 
-        User.is_deleted == False
-    ).all()
+    try:
+        # is_deleted 필드가 있는지 확인
+        pending_users = db.query(User).filter(
+            User.is_approved == False, 
+            User.is_deleted == False
+        ).all()
+    except Exception as e:
+        # is_deleted 필드가 없으면 승인 대기 사용자만 조회
+        print(f"is_deleted 필드 없음, 승인 대기 사용자만 조회: {e}")
+        pending_users = db.query(User).filter(User.is_approved == False).all()
     return pending_users
 
 @router.post("/{user_id}/approve")
@@ -228,22 +240,29 @@ async def get_user_stats(
     current_user: User = Depends(get_current_admin_user)
 ):
     """사용자 통계 조회 (관리자만)"""
-    # 현재 회원 수 (승인되고 삭제되지 않은 사용자)
-    current_members = db.query(func.count(User.id)).filter(
-        User.is_approved == True,
-        User.is_deleted == False
-    ).scalar()
-    
-    # 누적 회원 수 (승인된 사용자, 삭제된 사용자 포함)
-    total_members = db.query(func.count(User.id)).filter(
-        User.is_approved == True
-    ).scalar()
-    
-    # 승인 대기 수
-    pending_members = db.query(func.count(User.id)).filter(
-        User.is_approved == False,
-        User.is_deleted == False
-    ).scalar()
+    try:
+        # 현재 회원 수 (승인되고 삭제되지 않은 사용자)
+        current_members = db.query(func.count(User.id)).filter(
+            User.is_approved == True,
+            User.is_deleted == False
+        ).scalar()
+        
+        # 누적 회원 수 (승인된 사용자, 삭제된 사용자 포함)
+        total_members = db.query(func.count(User.id)).filter(
+            User.is_approved == True
+        ).scalar()
+        
+        # 승인 대기 수
+        pending_members = db.query(func.count(User.id)).filter(
+            User.is_approved == False,
+            User.is_deleted == False
+        ).scalar()
+    except Exception as e:
+        # is_deleted 필드가 없으면 기본 통계
+        print(f"is_deleted 필드 없음, 기본 통계 사용: {e}")
+        current_members = db.query(func.count(User.id)).filter(User.is_approved == True).scalar()
+        total_members = current_members
+        pending_members = db.query(func.count(User.id)).filter(User.is_approved == False).scalar()
     
     return {
         "current_members": current_members,
