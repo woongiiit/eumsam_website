@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { useQuery, useMutation, useQueryClient } from 'react-query'
 import { useAuth } from '../contexts/AuthContext'
-import { api } from '../lib/api'
+import { api } from '../api'
 import { ArrowLeft, Save } from 'lucide-react'
 import toast from 'react-hot-toast'
 
