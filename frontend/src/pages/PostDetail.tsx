@@ -152,8 +152,8 @@ const PostDetail = () => {
                       <Link to="/login" className="btn-primary">
                         로그인하기
                       </Link>
-                      <Link to="/register" className="btn-secondary">
-                        회원가입하기
+                      <Link to="/application" className="btn-secondary">
+                        지원하기
                       </Link>
                     </>
                   ) : !user.is_approved ? (

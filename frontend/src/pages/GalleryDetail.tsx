@@ -192,10 +192,10 @@ const GalleryDetail = () => {
                         로그인하기
                       </button>
                       <button
-                        onClick={() => navigate('/register')}
+                        onClick={() => navigate('/application')}
                         className="btn-secondary"
                       >
-                        회원가입하기
+                        지원하기
                       </button>
                     </>
                   ) : !user.is_approved ? (
