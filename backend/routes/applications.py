@@ -69,7 +69,8 @@ async def get_applications(
     current_user: User = Depends(get_current_admin_user)
 ):
     """입부 신청 목록 조회 (관리자만)"""
-    query = db.query(Application)
+    # applicant_id가 NULL이 아닌 레코드만 조회
+    query = db.query(Application).filter(Application.applicant_id.isnot(None))
     
     if status_filter:
         query = query.filter(Application.status == status_filter)
