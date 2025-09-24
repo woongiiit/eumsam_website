@@ -154,6 +154,16 @@ class IntegratedApplicationCreate(BaseModel):
     instrument: Optional[str] = None
     form_data: Optional[str] = None  # JSON 문자열
 
+# 신청 양식 질문 스키마
+class FormQuestion(BaseModel):
+    id: int
+    type: str
+    label: str
+    placeholder: str
+    required: bool = False
+    validation: Optional[dict] = None
+    options: Optional[List[dict]] = None
+
 # 신청 양식 관련 스키마
 class ApplicationFormBase(BaseModel):
     is_active: bool = True

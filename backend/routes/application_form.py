@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+from typing import List
 from database import get_db
 from models import ApplicationForm, User, Application
-from schemas import ApplicationFormResponse, ApplicationFormUpdate
+from schemas import ApplicationFormResponse, ApplicationFormUpdate, FormQuestion
 from auth import get_current_admin_user
 from datetime import datetime
 import json
@@ -137,31 +138,54 @@ async def get_form_questions(
 
 @router.put("/questions")
 async def update_form_questions(
-    questions: list,
+    questions: List[FormQuestion],
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_admin_user)
 ):
     """신청 양식 질문들만 업데이트 (관리자만)"""
-    form = db.query(ApplicationForm).filter(ApplicationForm.is_active == True).first()
-    
-    if not form:
-        # 새로운 양식 생성
-        form = ApplicationForm(
-            is_active=True,
-            form_questions=json.dumps(questions),
-            updated_by=current_user.id
+    try:
+        print(f"질문 업데이트 요청 받음: {len(questions)}개 질문")
+        print(f"현재 사용자: {current_user.id}, {current_user.email}")
+        
+        # Pydantic 모델을 딕셔너리로 변환
+        questions_dict = [q.dict() for q in questions]
+        print(f"변환된 질문 데이터: {questions_dict}")
+        
+        form = db.query(ApplicationForm).filter(ApplicationForm.is_active == True).first()
+        
+        if not form:
+            # 새로운 양식 생성
+            print("새로운 양식 생성 중...")
+            form = ApplicationForm(
+                is_active=True,
+                form_questions=json.dumps(questions_dict),
+                updated_by=current_user.id
+            )
+            db.add(form)
+            print("새로운 양식 추가 완료")
+        else:
+            # 기존 양식 업데이트
+            print("기존 양식 업데이트 중...")
+            form.form_questions = json.dumps(questions_dict)
+            form.updated_by = current_user.id
+            form.updated_at = datetime.utcnow()
+            print("기존 양식 업데이트 완료")
+        
+        db.commit()
+        db.refresh(form)
+        print("DB 커밋 완료")
+        
+        return {"message": "신청 양식이 업데이트되었습니다", "questions": questions_dict}
+        
+    except Exception as e:
+        print(f"질문 업데이트 오류: {str(e)}")
+        print(f"오류 타입: {type(e)}")
+        import traceback
+        print(f"상세 오류: {traceback.format_exc()}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"질문 업데이트 중 오류가 발생했습니다: {str(e)}"
         )
-        db.add(form)
-    else:
-        # 기존 양식 업데이트
-        form.form_questions = json.dumps(questions)
-        form.updated_by = current_user.id
-        form.updated_at = datetime.utcnow()
-    
-    db.commit()
-    db.refresh(form)
-    
-    return {"message": "신청 양식이 업데이트되었습니다", "questions": questions}
 
 @router.get("/status")
 async def get_application_status(
