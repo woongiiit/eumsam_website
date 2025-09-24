@@ -206,6 +206,27 @@ class StudyGroupResponse(StudyGroupBase):
     class Config:
         from_attributes = True
 
+# 댓글 관련 스키마
+class CommentBase(BaseModel):
+    content: str
+
+class CommentCreate(CommentBase):
+    pass
+
+class CommentUpdate(BaseModel):
+    content: str
+
+class CommentResponse(CommentBase):
+    id: int
+    post_id: int
+    author_id: int
+    created_at: datetime
+    updated_at: datetime
+    author: UserResponse
+    
+    class Config:
+        from_attributes = True
+
 # 토큰 관련 스키마
 class Token(BaseModel):
     access_token: str

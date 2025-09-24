@@ -10,7 +10,7 @@ from database import SessionLocal, engine, Base
 from models import *
 from schemas import *
 from auth import *
-from routes import auth, users, posts, gallery, applications, application_form, email_test, admin
+from routes import auth, users, posts, gallery, applications, application_form, email_test, admin, comments
 from logging_config import setup_logging
 
 # 로깅 설정 초기화
@@ -107,6 +107,7 @@ app.include_router(applications.router, prefix="/api/applications", tags=["입�
 app.include_router(application_form.router, prefix="/api/application-form", tags=["신청양식"])
 app.include_router(email_test.router, prefix="/api/email", tags=["이메일 테스트"])
 app.include_router(admin.router, prefix="/api/admin", tags=["관리자"])
+app.include_router(comments.router, prefix="/api", tags=["댓글"])
 
 # 정적 파일 서빙 (프론트엔드 정적 파일들)
 # Railway에서 프론트엔드 요청이 백엔드로 라우팅되는 경우를 대비
