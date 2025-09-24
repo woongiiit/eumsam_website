@@ -95,6 +95,8 @@ async def create_integrated_application(application_data: IntegratedApplicationC
     
     # 이메일 중복 확인 (삭제되지 않은 사용자만 체크)
     print(f"이메일 중복 체크: {application_data.email}")
+    
+    # 더 안전한 중복 체크: 명시적으로 is_deleted 조건 확인
     existing_user = db.query(User).filter(
         User.email == application_data.email,
         User.is_deleted == False
@@ -110,6 +112,24 @@ async def create_integrated_application(application_data: IntegratedApplicationC
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="이미 가입된 이메일입니다"
         )
+    
+    # 추가 안전장치: DB 레벨에서 다시 한번 확인
+    try:
+        # 트랜잭션 내에서 다시 한번 중복 체크
+        db.flush()  # 현재까지의 변경사항을 DB에 반영
+        existing_user_check = db.query(User).filter(
+            User.email == application_data.email,
+            User.is_deleted == False
+        ).first()
+        if existing_user_check:
+            print(f"DB 레벨 중복 체크 실패: {application_data.email}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="이미 가입된 이메일입니다"
+            )
+    except Exception as e:
+        print(f"DB 레벨 중복 체크 오류: {e}")
+        # 오류가 발생해도 계속 진행 (기존 로직 유지)
     
     # 사용자명 중복 확인 (삭제되지 않은 사용자만 체크)
     print(f"사용자명 중복 체크: {application_data.username}")
@@ -141,24 +161,59 @@ async def create_integrated_application(application_data: IntegratedApplicationC
                 detail="이미 사용 중인 학번입니다"
             )
     
-    # 새 사용자 생성 (승인 대기 상태)
-    hashed_password = get_password_hash(application_data.password)
-    db_user = User(
-        email=application_data.email,
-        username=application_data.username,
-        password_hash=hashed_password,
-        real_name=application_data.real_name,
-        student_id=application_data.student_id,
-        phone_number=application_data.phone_number,
-        major=application_data.major,
-        year=application_data.year,
-        is_approved=False  # 관리자 승인 필요
-    )
-    
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    print(f"사용자 생성 완료: {db_user.id}, {db_user.email}")
+    # 새 사용자 생성 (승인 대기 상태) - 예외 처리로 안전하게
+    try:
+        hashed_password = get_password_hash(application_data.password)
+        db_user = User(
+            email=application_data.email,
+            username=application_data.username,
+            password_hash=hashed_password,
+            real_name=application_data.real_name,
+            student_id=application_data.student_id,
+            phone_number=application_data.phone_number,
+            major=application_data.major,
+            year=application_data.year,
+            is_approved=False  # 관리자 승인 필요
+        )
+        
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+        print(f"사용자 생성 완료: {db_user.id}, {db_user.email}")
+        
+    except Exception as e:
+        db.rollback()  # 트랜잭션 롤백
+        print(f"사용자 생성 오류: {e}")
+        
+        # 유니크 제약 조건 위반인 경우 중복 체크
+        if "ix_users_email" in str(e):
+            existing_user = db.query(User).filter(
+                User.email == application_data.email,
+                User.is_deleted == False
+            ).first()
+            if existing_user:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="이미 가입된 이메일입니다"
+                )
+        elif "ix_users_username" in str(e):
+            existing_username = db.query(User).filter(
+                User.username == application_data.username,
+                User.is_deleted == False
+            ).first()
+            if existing_username:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="이미 사용 중인 사용자명입니다"
+                )
+        elif "ix_users_student_id" in str(e):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="이미 사용 중인 학번입니다"
+            )
+        
+        # 다른 오류는 그대로 전파
+        raise e
     
     # 지원서 생성
     db_application = Application(
