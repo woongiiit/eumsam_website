@@ -153,8 +153,16 @@ async def health_check():
 @app.get("/api/stats")
 async def get_stats(db: Session = Depends(get_db)):
     """홈페이지 통계 정보 조회 (공개)"""
-    # 승인된 사용자 수 (활성 멤버)
-    active_members = db.query(User).filter(User.is_approved == True).count()
+    # 승인된 사용자 수 (활성 멤버) - 삭제되지 않은 사용자만 포함
+    try:
+        active_members = db.query(User).filter(
+            User.is_approved == True,
+            User.is_deleted == False
+        ).count()
+    except Exception as e:
+        # is_deleted 필드가 없으면 기본 쿼리 사용
+        print(f"is_deleted 필드 없음, 기본 쿼리 사용: {e}")
+        active_members = db.query(User).filter(User.is_approved == True).count()
     
     return {
         "active_members": active_members,
