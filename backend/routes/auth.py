@@ -184,19 +184,33 @@ async def create_integrated_application(application_data: IntegratedApplicationC
     except Exception as e:
         db.rollback()  # 트랜잭션 롤백
         print(f"사용자 생성 오류: {e}")
+        print(f"오류 타입: {type(e)}")
+        print(f"오류 문자열: {str(e)}")
         
         # 유니크 제약 조건 위반인 경우 중복 체크
-        if "ix_users_email" in str(e):
+        error_str = str(e)
+        if "ix_users_email" in error_str or "duplicate key value violates unique constraint" in error_str:
+            print("이메일 중복 오류 감지, 중복 체크 수행")
             existing_user = db.query(User).filter(
                 User.email == application_data.email,
                 User.is_deleted == False
             ).first()
+            print(f"중복 체크 결과: {existing_user}")
             if existing_user:
+                print(f"활성 사용자 발견: {existing_user.id}, is_deleted: {existing_user.is_deleted}")
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="이미 가입된 이메일입니다"
                 )
-        elif "ix_users_username" in str(e):
+            else:
+                print("활성 사용자 없음, 다른 원인으로 중복 오류 발생")
+                # Soft Delete된 사용자가 있지만 여전히 유니크 제약 조건 위반
+                # 이는 데이터베이스 상태 불일치 문제
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="이메일이 이미 사용 중입니다. 잠시 후 다시 시도해주세요."
+                )
+        elif "ix_users_username" in error_str:
             existing_username = db.query(User).filter(
                 User.username == application_data.username,
                 User.is_deleted == False
@@ -206,7 +220,7 @@ async def create_integrated_application(application_data: IntegratedApplicationC
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="이미 사용 중인 사용자명입니다"
                 )
-        elif "ix_users_student_id" in str(e):
+        elif "ix_users_student_id" in error_str:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="이미 사용 중인 학번입니다"
