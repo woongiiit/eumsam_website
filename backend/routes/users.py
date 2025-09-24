@@ -252,10 +252,8 @@ async def get_user_stats(
             User.is_deleted == False
         ).scalar()
         
-        # 누적 회원 수 (승인된 사용자, 삭제된 사용자 포함)
-        total_members = db.query(func.count(User.id)).filter(
-            User.is_approved == True
-        ).scalar()
+        # 총 회원 수 (삭제된 사용자 포함, 승인 여부 무관)
+        total_members = db.query(func.count(User.id)).scalar()
         
         # 승인 대기 수
         pending_members = db.query(func.count(User.id)).filter(
@@ -266,7 +264,7 @@ async def get_user_stats(
         # is_deleted 필드가 없으면 기본 통계
         print(f"is_deleted 필드 없음, 기본 통계 사용: {e}")
         current_members = db.query(func.count(User.id)).filter(User.is_approved == True).scalar()
-        total_members = current_members
+        total_members = db.query(func.count(User.id)).scalar()
         pending_members = db.query(func.count(User.id)).filter(User.is_approved == False).scalar()
     
     return {

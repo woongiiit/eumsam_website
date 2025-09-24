@@ -433,10 +433,6 @@ const Admin = () => {
     ? applications.filter((app: Application) => app.status === 'pending').length 
     : 0
 
-  // 미승인 회원 수 계산
-  const pendingUsersCount = users 
-    ? users.filter((user: User) => !user.is_approved).length 
-    : 0
 
   if (!user || !user.is_admin) {
     return (
@@ -467,7 +463,7 @@ const Admin = () => {
           <div className="card p-6 text-center">
             <Users className="w-8 h-8 text-blue-500 mx-auto mb-2" />
             <div className="text-2xl font-bold text-gray-900">
-              {users ? users.length : 0}
+              {userStats ? userStats.total_members : 0}
             </div>
             <div className="text-sm text-gray-600">총 회원 수</div>
           </div>
@@ -475,7 +471,7 @@ const Admin = () => {
           <div className="card p-6 text-center">
             <UserCheck className="w-8 h-8 text-green-500 mx-auto mb-2" />
             <div className="text-2xl font-bold text-gray-900">
-              {users ? users.filter((u: User) => u.is_approved).length : 0}
+              {userStats ? userStats.current_members : 0}
             </div>
             <div className="text-sm text-gray-600">활동 부원</div>
           </div>
@@ -483,7 +479,7 @@ const Admin = () => {
           <div className="card p-6 text-center">
             <UserX className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
             <div className="text-2xl font-bold text-gray-900">
-              {pendingUsersCount}
+              {userStats ? userStats.pending_members : 0}
             </div>
             <div className="text-sm text-gray-600">승인 대기</div>
           </div>
@@ -504,9 +500,9 @@ const Admin = () => {
                 <span className="flex items-center space-x-2">
                   <Users className="w-4 h-4" />
                   <span>회원 관리</span>
-                  {pendingUsersCount > 0 && (
+                  {userStats && userStats.pending_members > 0 && (
                     <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-orange-500 rounded-full min-w-[20px] h-5">
-                      {pendingUsersCount}
+                      {userStats.pending_members}
                     </span>
                   )}
                 </span>
