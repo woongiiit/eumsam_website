@@ -549,7 +549,6 @@ const Admin = () => {
                 applications={applications}
                 usersLoading={usersLoading}
                 applicationsLoading={applicationsLoading}
-                userStats={userStats}
                 onApprove={handleApproveUser}
                 onReject={handleRejectUser}
                 onDelete={handleDeleteUser}

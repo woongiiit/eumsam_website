@@ -1,10 +1,6 @@
 import React, { useState } from 'react'
 import { 
-  Users, 
-  UserCheck, 
   UserX, 
-  Clock, 
-  FileText, 
   Search, 
   ArrowUpDown, 
   ChevronLeft, 
@@ -45,11 +41,6 @@ interface MembersTabProps {
   applications: Application[] | undefined
   usersLoading: boolean
   applicationsLoading: boolean
-  userStats?: {
-    current_members: number
-    total_members: number
-    pending_members: number
-  }
   onApprove: (id: number) => void
   onReject: (id: number) => void
   onDelete: (id: number) => void
@@ -62,7 +53,6 @@ const MembersTab: React.FC<MembersTabProps> = ({
   applications,
   usersLoading,
   applicationsLoading,
-  userStats,
   onApprove,
   onReject,
   onDelete,
@@ -142,11 +132,6 @@ const MembersTab: React.FC<MembersTabProps> = ({
   const startIndex = (currentPage - 1) * pageSize
   const paginatedUsers = sortedUsers.slice(startIndex, startIndex + pageSize)
 
-  // 상태별 사용자 수 계산
-  const currentMembers = userStats?.current_members || 0
-  const totalMembers = userStats?.total_members || 0
-  const pendingCount = userStats?.pending_members || 0
-  const applicationCount = applications?.length || 0
 
   const handleSort = (field: 'name' | 'email' | 'created_at' | 'status') => {
     if (sortField === field) {
@@ -182,56 +167,6 @@ const MembersTab: React.FC<MembersTabProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* 통계 카드 */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex items-center">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Users className="w-6 h-6 text-blue-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">누적 회원수</p>
-              <p className="text-2xl font-bold text-gray-900">{totalMembers}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex items-center">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <UserCheck className="w-6 h-6 text-green-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">현재 회원</p>
-              <p className="text-2xl font-bold text-gray-900">{currentMembers}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex items-center">
-            <div className="p-2 bg-yellow-100 rounded-lg">
-              <Clock className="w-6 h-6 text-yellow-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">승인 대기</p>
-              <p className="text-2xl font-bold text-gray-900">{pendingCount}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <div className="flex items-center">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <FileText className="w-6 h-6 text-purple-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">지원서</p>
-              <p className="text-2xl font-bold text-gray-900">{applicationCount}</p>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* 검색 및 필터 */}
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
