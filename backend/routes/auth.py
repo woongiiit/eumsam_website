@@ -88,7 +88,8 @@ async def create_integrated_application(application_data: IntegratedApplicationC
     # 지원 가능 여부 확인
     form = db.query(ApplicationForm).filter(ApplicationForm.is_active == True).first()
     if form and form.max_applicants > 0:
-        current_count = db.query(func.count(Application.id)).scalar()
+        # 초기화 기능을 위해 ApplicationForm.current_applicants 사용
+        current_count = form.current_applicants
         if current_count >= form.max_applicants:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
