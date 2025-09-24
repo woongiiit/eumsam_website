@@ -5,7 +5,6 @@ from database import get_db
 from models import User, Application
 from schemas import ApplicationCreate, ApplicationResponse, ApplicationUpdate
 from auth import get_current_user, get_current_admin_user
-from email_service import send_application_approval_email
 from datetime import datetime
 import asyncio
 
