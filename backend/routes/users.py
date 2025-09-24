@@ -6,7 +6,7 @@ from database import get_db
 from models import User, Post, GalleryItem, Application
 from schemas import UserResponse, UserUpdate, PasswordChange, UserDelete, UserRoleUpdate
 from auth import get_current_user, get_current_admin_user, verify_password, get_password_hash
-from email_service import send_approval_email
+from email_service import send_integrated_approval_email
 import asyncio
 
 router = APIRouter()
@@ -63,14 +63,19 @@ async def approve_user(
     user.is_approved = True
     db.commit()
     
-    # 승인 이메일 전송 (비동기)
+    # 통합 승인 이메일 전송 (비동기) - 가입 및 지원 모두 승인됨
     try:
+        # 사용자의 지원서 정보도 함께 포함
+        application = db.query(Application).filter(Application.applicant_id == user.id).first()
         user_email_data = {
             'real_name': user.real_name,
             'username': user.username,
-            'email': user.email
+            'email': user.email,
+            'student_id': user.student_id,
+            'major': user.major,
+            'instrument': application.instrument if application else '미지정'
         }
-        asyncio.create_task(send_approval_email(user_email_data))
+        asyncio.create_task(send_integrated_approval_email(user_email_data))
     except Exception as e:
         # 이메일 전송 실패는 승인을 막지 않음
         print(f"Email sending failed: {e}")

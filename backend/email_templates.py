@@ -109,46 +109,72 @@ def get_approval_email_template():
 </html>
     """)
 
-def get_application_approval_email_template():
-    """입부신청 승인 이메일 템플릿"""
+def get_integrated_approval_email_template():
+    """통합 지원/가입 승인 이메일 템플릿"""
     return Template("""
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>동국대학교 음샘 입부 승인 완료</title>
+    <title>동국대학교 음샘 가입 및 지원 승인 완료</title>
     <style>
         body { font-family: 'Pretendard', Arial, sans-serif; line-height: 1.6; color: #333; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+        .header { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
         .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
-        .button { background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 20px 0; }
+        .button { background: #28a745; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 20px 0; }
         .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
         .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 15px; border-radius: 5px; margin: 20px 0; }
+        .info-box { background: #e3f2fd; border: 1px solid #bbdefb; color: #1565c0; padding: 15px; border-radius: 5px; margin: 20px 0; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎉 입부 신청이 승인되었습니다!</h1>
+            <h1>🎉 축하합니다! 음샘 가입 및 지원이 승인되었습니다!</h1>
         </div>
         <div class="content">
             <div class="success">
-                <strong>🎵 {{ real_name }}님의 입부 신청이 승인되었습니다!</strong>
+                <strong>🎵 {{ real_name }}님의 음샘 가입 및 지원이 모두 승인되었습니다!</strong>
             </div>
             
-            <h2>음샘의 정식 멤버가 되신 것을 축하드립니다!</h2>                                   
-
-            <h3>📞 연락처</h3>
-            <p>궁금한 사항이 있으시면 언제든 연락주세요!</p>            
+            <h2>음샘의 정식 멤버가 되신 것을 축하드립니다!</h2>
+            <p>이제 음샘의 모든 활동에 참여하실 수 있습니다.</p>
+            
+            <div class="info-box">
+                <h3>📋 승인된 정보</h3>
+                <ul>
+                    <li><strong>이름:</strong> {{ real_name }} ({{ username }})</li>
+                    <li><strong>이메일:</strong> {{ email }}</li>
+                    {% if student_id %}<li><strong>학번:</strong> {{ student_id }}</li>{% endif %}
+                    {% if major %}<li><strong>전공:</strong> {{ major }}</li>{% endif %}
+                    {% if instrument %}<li><strong>지원 악기:</strong> {{ instrument }}</li>{% endif %}
+                </ul>
+            </div>
+            
+            <h3>🎯 이용 가능한 기능</h3>
+            <ul>
+                <li><strong>커뮤니티 게시판:</strong> 칭찬글, 정보글, 세션구인 등 자유로운 소통</li>
+                <li><strong>갤러리:</strong> 공연, MT, 연습 사진과 영상 공유</li>
+                <li><strong>다양한 활동:</strong> 정기 연습, 공연, MT 등</li>
+                <li><strong>동아리 행사:</strong> 신입생 환영회, 정기 공연, MT 등</li>
+            </ul>
+            
+            <h3>📞 연락처 및 문의</h3>
+            <p>궁금한 사항이 있으시면 언제든 연락주세요!</p>
+            <ul>
+                <li><strong>이메일:</strong> eumsaem.band@gmail.com</li>
+                <li><strong>위치:</strong> 동국대학교 학생회관 4층</li>
+            </ul>
             
             <p>함께 멋진 음악을 만들어가요! 🎸🎹🥁🎤</p>
             
-            <a href="http://localhost:3000" class="button">음샘 홈페이지 방문하기</a>
+            <a href="https://eumsamfrontend-production.up.railway.app" class="button">음샘 홈페이지 방문하기</a>
         </div>
         <div class="footer">
-            <p>동국대학교 중앙 밴드 동아리 음샘 | 대학교 학생회관 4층</p>            
+            <p>동국대학교 중앙 밴드 동아리 음샘 | 대학교 학생회관 4층</p>
+            <p>이메일: eumsaem.band@gmail.com</p>
         </div>
     </div>
 </body>

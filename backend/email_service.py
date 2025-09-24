@@ -3,7 +3,7 @@ from email_config import fastmail, email_settings
 from email_templates import (
     get_welcome_email_template, 
     get_approval_email_template, 
-    get_application_approval_email_template
+    get_integrated_approval_email_template
 )
 import logging
 
@@ -81,8 +81,8 @@ async def send_approval_email(user_data: dict):
         logger.error(f"Approval email sending failed: {e}")
         return False
 
-async def send_application_approval_email(application_data: dict):
-    """입부신청 승인 이메일 전송"""
+async def send_integrated_approval_email(user_data: dict):
+    """통합 가입/지원 승인 이메일 전송"""
     # 이메일 기능이 비활성화된 경우
     if not email_settings or not email_settings.MAIL_ENABLED:
         logger.info("Email functionality is disabled.")
@@ -90,28 +90,31 @@ async def send_application_approval_email(application_data: dict):
     
     try:
         # 필수 데이터 검증
-        if not all(key in application_data for key in ['real_name', 'email']):
-            logger.error("Required application data is missing.")
+        if not all(key in user_data for key in ['real_name', 'email']):
+            logger.error("Required user data is missing.")
             return False
         
-        template = get_application_approval_email_template()
+        template = get_integrated_approval_email_template()
         html_content = template.render(
-            real_name=application_data['real_name'],
-            instrument=application_data.get('instrument', '미지정'),
-            motivation=application_data.get('motivation', '')
+            real_name=user_data['real_name'],
+            username=user_data.get('username', ''),
+            email=user_data['email'],
+            student_id=user_data.get('student_id', ''),
+            major=user_data.get('major', ''),
+            instrument=user_data.get('instrument', '미지정')
         )
         
         message = MessageSchema(
-            subject="🎉 동국대학교 음샘 입부 승인 완료",
-            recipients=[application_data['email']],
+            subject="🎉 동국대학교 음샘 가입 및 지원 승인 완료",
+            recipients=[user_data['email']],
             body=html_content,
             subtype="html"
         )
         
         await fastmail.send_message(message)
-        logger.info(f"Application approval email sent successfully: {application_data['email']}")
+        logger.info(f"Integrated approval email sent successfully: {user_data['email']}")
         return True
         
     except Exception as e:
-        logger.error(f"Application approval email sending failed: {e}")
+        logger.error(f"Integrated approval email sending failed: {e}")
         return False

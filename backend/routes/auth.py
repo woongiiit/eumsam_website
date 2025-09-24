@@ -50,19 +50,7 @@ async def register(user_data: UserCreate, db: Session = Depends(get_db)):
     db.refresh(db_user)
     print(f"사용자 생성 완료: {db_user.id}, {db_user.email}")
     
-    # 환영 이메일 전송 (비동기)
-    try:
-        user_email_data = {
-            'real_name': db_user.real_name,
-            'username': db_user.username,
-            'email': db_user.email,
-            'student_id': db_user.student_id,
-            'major': db_user.major
-        }
-        asyncio.create_task(send_welcome_email(user_email_data))
-    except Exception as e:
-        # 이메일 전송 실패는 회원가입을 막지 않음
-        print(f"Email sending failed: {e}")
+    # 통합 서비스에서는 가입 시 이메일을 보내지 않음 (승인 시에만 전송)
     
     return db_user
 
@@ -163,19 +151,7 @@ async def create_integrated_application(application_data: IntegratedApplicationC
         db.commit()
         print(f"지원자 수 증가: {form.current_applicants}")
     
-    # 환영 이메일 전송 (비동기)
-    try:
-        user_email_data = {
-            'real_name': db_user.real_name,
-            'username': db_user.username,
-            'email': db_user.email,
-            'student_id': db_user.student_id,
-            'major': db_user.major
-        }
-        asyncio.create_task(send_welcome_email(user_email_data))
-    except Exception as e:
-        # 이메일 전송 실패는 지원/가입을 막지 않음
-        print(f"Email sending failed: {e}")
+    # 통합 서비스에서는 가입 시 이메일을 보내지 않음 (승인 시에만 전송)
     
     return db_user
 
