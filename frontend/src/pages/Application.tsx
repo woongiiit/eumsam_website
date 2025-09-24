@@ -289,8 +289,8 @@ const Application = () => {
     }
   }
 
-  // 지원하기가 비활성화된 경우
-  if (!isSupportActive) {
+  // 지원하기가 비활성화된 경우 (관리자가 아닌 경우에만)
+  if (!isSupportActive && (!user || !user.is_admin)) {
     return (
       <div className="min-h-screen bg-[#1A1A1A] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full text-center">
@@ -382,6 +382,16 @@ const Application = () => {
           <p className="text-xl text-[#B0B0B0]">
             음샘 동아리에 입부하고 싶으시다면 아래 양식을 작성해주세요
           </p>
+          
+          {/* 관리자 전용 안내 */}
+          {user && user.is_admin && !isSupportActive && (
+            <div className="mt-4 p-4 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
+              <p className="text-yellow-400 text-sm">
+                <strong>관리자 안내:</strong> 현재 지원하기 기능이 비활성화되어 있습니다. 
+                일반 사용자는 이 페이지에 접근할 수 없지만, 관리자 계정으로는 테스트 목적으로 접근 가능합니다.
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="bg-[#121212] border border-[#2A2A2A] py-8 px-6 shadow-xl rounded-2xl">
