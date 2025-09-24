@@ -93,7 +93,7 @@ async def create_integrated_application(application_data: IntegratedApplicationC
         if current_count >= form.max_applicants:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"지원자 수가 한계에 도달했습니다. (현재: {current_count}/{form.max_applicants})"
+                detail=f"선착순 지원이 마감되었습니다. (현재: {current_count}/{form.max_applicants})"
             )
     
     # 이메일 중복 확인

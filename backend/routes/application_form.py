@@ -177,7 +177,7 @@ async def get_application_status(
         if inactive_form:
             return {
                 "can_apply": False,
-                "reason": "지원하기 기능이 비활성화되었습니다.",
+                "reason": "지금은 모집 기간이 아닙니다.",
                 "max_applicants": inactive_form.max_applicants,
                 "current_applicants": inactive_form.current_applicants or 0
             }
@@ -196,7 +196,7 @@ async def get_application_status(
     if form.max_applicants > 0 and current_count >= form.max_applicants:
         return {
             "can_apply": False,
-            "reason": f"지원자 수가 한계에 도달했습니다. (현재: {current_count}/{form.max_applicants})",
+            "reason": f"선착순 지원이 마감되었습니다. (현재: {current_count}/{form.max_applicants})",
             "max_applicants": form.max_applicants,
             "current_applicants": current_count
         }
