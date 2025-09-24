@@ -1,7 +1,9 @@
 import { Music, Mail, MapPin, Phone } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import { useAuth } from '../contexts/AuthContext'
 
 const Footer = () => {
+  const { user } = useAuth()
   const [isSupportActive, setIsSupportActive] = useState(true)
 
   // 지원하기 활성화 상태 확인
@@ -91,9 +93,9 @@ const Footer = () => {
               <li><a href="/gallery" className="text-gray-600 hover:text-primary-600 transition-colors">갤러리</a></li>
               <li>
                 <a 
-                  href={isSupportActive ? "/application" : "#"} 
+                  href={isSupportActive || (user && user.is_admin) ? "/application" : "#"} 
                   onClick={(e) => {
-                    if (!isSupportActive) {
+                    if (!isSupportActive && (!user || !user.is_admin)) {
                       e.preventDefault()
                       alert('지금은 음샘 지원 기간이 아닙니다!')
                     }

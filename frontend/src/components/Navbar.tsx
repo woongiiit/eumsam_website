@@ -57,7 +57,7 @@ const Navbar = () => {
   }
 
   const handleApplicationClick = (e: React.MouseEvent) => {
-    if (!isSupportActive) {
+    if (!isSupportActive && (!user || !user.is_admin)) {
       e.preventDefault()
       alert('지금은 음샘 지원 기간이 아닙니다!')
     }
@@ -114,7 +114,7 @@ const Navbar = () => {
             {navItems.map((item) => (
               <Link
                 key={item.path}
-                to={item.path}
+                to={item.path === '/application' ? (isSupportActive || (user && user.is_admin) ? item.path : '#') : item.path}
                 onClick={item.path === '/application' ? handleApplicationClick : undefined}
                 className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   isActive(item.path)
@@ -183,7 +183,7 @@ const Navbar = () => {
               {navItems.map((item) => (
                 <Link
                   key={item.path}
-                  to={item.path}
+                  to={item.path === '/application' ? (isSupportActive || (user && user.is_admin) ? item.path : '#') : item.path}
                   onClick={(e) => {
                     if (item.path === '/application') {
                       handleApplicationClick(e)

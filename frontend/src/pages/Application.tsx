@@ -43,7 +43,7 @@ const Application = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<ApplicationForm>()
-  
+
   const password = watch('password')
 
   // 지원하기 활성화 상태 및 지원자 수 제한 확인
@@ -62,12 +62,12 @@ const Application = () => {
       } catch (error) {
         console.error('지원 상태 확인 실패:', error)
         // API 실패 시 로컬 스토리지에서 확인
-        const savedStatus = localStorage.getItem('support_active')
-        if (savedStatus !== null) {
-          const isActive = JSON.parse(savedStatus)
-          setIsSupportActive(isActive)
-        } else {
-          setIsSupportActive(true) // 기본값은 활성화
+      const savedStatus = localStorage.getItem('support_active')
+      if (savedStatus !== null) {
+        const isActive = JSON.parse(savedStatus)
+        setIsSupportActive(isActive)
+      } else {
+        setIsSupportActive(true) // 기본값은 활성화
         }
       }
     }

@@ -2,10 +2,12 @@ import { Link } from 'react-router-dom'
 import { useQuery } from 'react-query'
 import { useEffect, useState } from 'react'
 import { api } from '../api'
+import { useAuth } from '../contexts/AuthContext'
 import { Music, Camera, UserPlus, ArrowRight, Heart, Star, Award, Calendar } from 'lucide-react'
 import { useScrollAnimation } from '../hooks/useScrollAnimation'
 
 const Home = () => {
+  const { user } = useAuth()
   const [isSupportActive, setIsSupportActive] = useState(true)
 
   // 페이지 로드 시 최상단으로 스크롤
@@ -165,9 +167,9 @@ const Home = () => {
                    </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
               <Link 
-                to={isSupportActive ? "/application" : "#"} 
+                to={isSupportActive || (user && user.is_admin) ? "/application" : "#"} 
                 onClick={(e) => {
-                  if (!isSupportActive) {
+                  if (!isSupportActive && (!user || !user.is_admin)) {
                     e.preventDefault()
                     alert('지금은 음샘 지원 기간이 아닙니다!')
                   }
@@ -394,9 +396,9 @@ const Home = () => {
           </p>
           <div className={`flex flex-col sm:flex-row gap-4 justify-center fade-in-section fade-in-delay-2 ${ctaAnimation.isVisible ? 'visible' : ''}`}>
             <Link
-              to={isSupportActive ? "/application" : "#"}
+              to={isSupportActive || (user && user.is_admin) ? "/application" : "#"}
               onClick={(e) => {
-                if (!isSupportActive) {
+                if (!isSupportActive && (!user || !user.is_admin)) {
                   e.preventDefault()
                   alert('지금은 음샘 지원 기간이 아닙니다!')
                 }

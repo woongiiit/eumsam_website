@@ -344,9 +344,9 @@ const Board = () => {
                   로그인하기
                 </Link>
                 <Link 
-                  to={supportStatus?.can_apply ? "/application" : "#"} 
+                  to={supportStatus?.can_apply || (user && user.is_admin) ? "/application" : "#"} 
                   onClick={(e) => {
-                    if (!supportStatus?.can_apply) {
+                    if (!supportStatus?.can_apply && (!user || !user.is_admin)) {
                       e.preventDefault()
                       alert(supportStatus?.reason || '지금은 음샘 지원 기간이 아닙니다!')
                     }
@@ -369,9 +369,9 @@ const Board = () => {
                 현재 관리자 승인 대기 중입니다. 승인 후 게시글 내용을 읽을 수 있습니다.
               </p>
               <Link 
-                to={supportStatus?.can_apply ? "/application" : "#"} 
+                to={supportStatus?.can_apply || (user && user.is_admin) ? "/application" : "#"} 
                 onClick={(e) => {
-                  if (!supportStatus?.can_apply) {
+                  if (!supportStatus?.can_apply && (!user || !user.is_admin)) {
                     e.preventDefault()
                     alert(supportStatus?.reason || '지금은 음샘 지원 기간이 아닙니다!')
                   }
