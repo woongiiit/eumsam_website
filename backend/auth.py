@@ -66,7 +66,10 @@ def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    user = db.query(User).filter(User.email == email).first()
+    user = db.query(User).filter(
+        User.email == email,
+        User.is_deleted == False
+    ).first()
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -98,7 +101,10 @@ def get_current_user_optional(
     if email is None:
         return None
     
-    user = db.query(User).filter(User.email == email).first()
+    user = db.query(User).filter(
+        User.email == email,
+        User.is_deleted == False
+    ).first()
     return user
 
 def get_current_admin_user(current_user: User = Depends(get_current_user)) -> User:
