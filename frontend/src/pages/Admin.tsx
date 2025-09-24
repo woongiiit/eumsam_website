@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from 'react-query'
 import { useAuth } from '../contexts/AuthContext'
 import { api } from '../api'
 import MembersTab from '../components/MembersTab'
-import { Users, UserCheck, UserX, FileText, Camera, Clock, Mail, Phone, ToggleLeft, ToggleRight, Search, ChevronLeft, ChevronRight, ArrowUpDown, ChevronDown, ChevronUp, Trash2, Music } from 'lucide-react'
+import { Users, UserCheck, UserX, Camera, Clock, Mail, Phone, ToggleLeft, ToggleRight, Search, ChevronLeft, ChevronRight, ArrowUpDown, ChevronDown, ChevronUp, Trash2, Music } from 'lucide-react'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import toast from 'react-hot-toast'
@@ -463,7 +463,7 @@ const Admin = () => {
         </div>
 
         {/* 통계 카드 */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="card p-6 text-center">
             <Users className="w-8 h-8 text-blue-500 mx-auto mb-2" />
             <div className="text-2xl font-bold text-gray-900">
@@ -477,7 +477,7 @@ const Admin = () => {
             <div className="text-2xl font-bold text-gray-900">
               {users ? users.filter((u: User) => u.is_approved).length : 0}
             </div>
-            <div className="text-sm text-gray-600">승인된 회원</div>
+            <div className="text-sm text-gray-600">활동 부원</div>
           </div>
           
           <div className="card p-6 text-center">
@@ -486,14 +486,6 @@ const Admin = () => {
               {pendingUsersCount}
             </div>
             <div className="text-sm text-gray-600">승인 대기</div>
-          </div>
-          
-          <div className="card p-6 text-center">
-            <FileText className="w-8 h-8 text-purple-500 mx-auto mb-2" />
-            <div className="text-2xl font-bold text-gray-900">
-              {applications ? applications.length : 0}
-            </div>
-            <div className="text-sm text-gray-600">입부 승인 수</div>
           </div>
         </div>
 
