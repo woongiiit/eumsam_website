@@ -94,23 +94,36 @@ async def create_integrated_application(application_data: IntegratedApplicationC
             )
     
     # 이메일 중복 확인 (삭제되지 않은 사용자만 체크)
+    print(f"이메일 중복 체크: {application_data.email}")
     existing_user = db.query(User).filter(
         User.email == application_data.email,
         User.is_deleted == False
     ).first()
+    
+    # 디버깅: 모든 사용자 확인
+    all_users_with_email = db.query(User).filter(User.email == application_data.email).all()
+    print(f"해당 이메일의 모든 사용자: {[(u.id, u.email, u.is_deleted) for u in all_users_with_email]}")
+    
     if existing_user:
-        print(f"이메일 중복: {application_data.email}")
+        print(f"이메일 중복: {application_data.email}, is_deleted: {existing_user.is_deleted}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="이미 가입된 이메일입니다"
         )
     
     # 사용자명 중복 확인 (삭제되지 않은 사용자만 체크)
+    print(f"사용자명 중복 체크: {application_data.username}")
     existing_username = db.query(User).filter(
         User.username == application_data.username,
         User.is_deleted == False
     ).first()
+    
+    # 디버깅: 모든 사용자 확인
+    all_users_with_username = db.query(User).filter(User.username == application_data.username).all()
+    print(f"해당 사용자명의 모든 사용자: {[(u.id, u.username, u.is_deleted) for u in all_users_with_username]}")
+    
     if existing_username:
+        print(f"사용자명 중복: {application_data.username}, is_deleted: {existing_username.is_deleted}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="이미 사용 중인 사용자명입니다"
