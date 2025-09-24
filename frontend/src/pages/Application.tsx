@@ -309,8 +309,8 @@ const Application = () => {
     )
   }
 
-  // 로그인한 사용자는 기존 지원서 작성으로 리다이렉트
-  if (user) {
+  // 일반 회원(관리자가 아닌 로그인 사용자)은 접근 불가
+  if (user && !user.is_admin) {
     return (
       <div className="min-h-screen bg-[#1A1A1A] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full text-center">
