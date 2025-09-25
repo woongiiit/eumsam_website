@@ -55,7 +55,7 @@ const Admin = () => {
   // 사용자 통계 조회
   const { data: userStats } = useQuery('user-stats', async () => {
     const response = await api.get('/users/stats')
-    return response.data
+      return response.data
   })
 
   // 지원서 목록 조회
@@ -82,8 +82,7 @@ const Admin = () => {
         // 서버에서 가져온 최신 상태를 로컬 스토리지에 저장
         if (data) {
           localStorage.setItem('support_active', JSON.stringify(data.is_active))
-          // 다른 컴포넌트에 상태 동기화 알림
-          window.dispatchEvent(new CustomEvent('supportStatusChanged'))
+          // 커스텀 이벤트 발생 제거 (updateSupportMutation.onSuccess에서만 발생)
         }
       }
     }
@@ -388,6 +387,12 @@ const Admin = () => {
       return
     }
 
+    // form_questions가 로드되지 않았으면 토글 방지
+    if (!supportSettings?.form_questions) {
+      toast.error('양식 질문이 로드 중입니다. 잠시 후 다시 시도해주세요.')
+      return
+    }
+
     const message = isActive 
       ? `지원하기 기능을 활성화하시겠습니까? 사용자들이 지원 신청을 할 수 있게 됩니다.${maxApplicants > 0 ? ` (최대 ${maxApplicants}명)` : ''}`
       : '지원하기 기능을 비활성화하시겠습니까? 사용자들이 지원 신청을 할 수 없게 됩니다.'
@@ -672,13 +677,17 @@ const SupportTab = ({
             <div className="flex items-center">
               {isActive ? (
                 <ToggleRight 
-                  className="w-8 h-8 text-green-500 cursor-pointer hover:text-green-600 transition-colors" 
-                  onClick={() => onToggleSupport(!isActive, maxApplicants)}
+                  className={`w-8 h-8 text-green-500 transition-colors ${
+                    supportSettings?.form_questions ? 'cursor-pointer hover:text-green-600' : 'cursor-not-allowed opacity-50'
+                  }`}
+                  onClick={() => supportSettings?.form_questions && onToggleSupport(!isActive, maxApplicants)}
                 />
               ) : (
                 <ToggleLeft 
-                  className="w-8 h-8 text-gray-400 cursor-pointer hover:text-gray-500 transition-colors" 
-                  onClick={() => onToggleSupport(!isActive, maxApplicants)}
+                  className={`w-8 h-8 text-gray-400 transition-colors ${
+                    supportSettings?.form_questions ? 'cursor-pointer hover:text-gray-500' : 'cursor-not-allowed opacity-50'
+                  }`}
+                  onClick={() => supportSettings?.form_questions && onToggleSupport(!isActive, maxApplicants)}
                 />
               )}
             </div>
@@ -720,14 +729,14 @@ const SupportTab = ({
                       <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                       </svg>
-                    </div>
+              </div>
                     <div className="ml-3">
                       <p className="text-sm text-blue-700">
                         <strong>현재 {currentApplicants}명</strong>이 지원했으며, 
                         <strong> {maxApplicants - currentApplicants}명</strong>이 더 지원할 수 있습니다.
                       </p>
-                    </div>
-                  </div>
+            </div>
+          </div>
                   {currentApplicants > 0 && (
                     <button
                       onClick={() => {
@@ -742,8 +751,8 @@ const SupportTab = ({
                     </button>
                   )}
                 </div>
-              </div>
-            )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -751,10 +760,10 @@ const SupportTab = ({
       <div className="text-center">
           <button
             onClick={() => onToggleSupport(isActive, maxApplicants)}
-            disabled={isUpdating}
+            disabled={isUpdating || !supportSettings?.form_questions}
             className={`w-full py-3 px-6 rounded-md font-medium transition-colors ${
               'bg-blue-100 text-blue-700 hover:bg-blue-200'
-            } ${isUpdating ? 'opacity-50 cursor-not-allowed' : ''}`}
+            } ${(isUpdating || !supportSettings?.form_questions) ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             {isUpdating ? '처리 중...' : '설정 저장'}
             {maxApplicants > 0 && ` (최대 ${maxApplicants}명)`}
