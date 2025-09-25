@@ -76,6 +76,16 @@ const Admin = () => {
     async () => {
       const response = await api.get('/application-form')
       return response.data
+    },
+    {
+      onSuccess: (data) => {
+        // 서버에서 가져온 최신 상태를 로컬 스토리지에 저장
+        if (data) {
+          localStorage.setItem('support_active', JSON.stringify(data.is_active))
+          // 다른 컴포넌트에 상태 동기화 알림
+          window.dispatchEvent(new CustomEvent('supportStatusChanged'))
+        }
+      }
     }
   )
 
@@ -254,6 +264,13 @@ const Admin = () => {
         console.log('지원 활성화 상태 업데이트 성공:', data)
         // 쿼리 캐시 즉시 업데이트 (서버 응답 데이터 사용)
         queryClient.setQueryData('support-settings', data)
+        
+        // 로컬 스토리지에 상태 저장
+        localStorage.setItem('support_active', JSON.stringify(isActive))
+        
+        // 다른 컴포넌트에 상태 변경 알림
+        window.dispatchEvent(new CustomEvent('supportStatusChanged'))
+        
         toast.success(`지원하기 기능이 ${isActive ? '활성화' : '비활성화'}되었습니다${maxApplicants > 0 ? ` (최대 ${maxApplicants}명)` : ''}`)
       },
       onError: (error: any) => {
