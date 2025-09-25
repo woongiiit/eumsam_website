@@ -1,4 +1,4 @@
-import { Music, Mail, MapPin, Phone } from 'lucide-react'
+import { Music, MapPin, Phone } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -112,10 +112,6 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-4">연락처</h3>
             <ul className="space-y-3">
-              <li className="flex items-center text-gray-600">
-                <Mail className="w-4 h-4 mr-2 text-primary-500" />
-                <span>eumsaem@university.ac.kr</span>
-              </li>
               <li className="flex items-center text-gray-600">
                 <Phone className="w-4 h-4 mr-2 text-primary-500" />
                 <span>010-1234-5678</span>
