@@ -140,6 +140,16 @@ const Admin = () => {
           }
         ]
       }
+    },
+    {
+      onSuccess: (data) => {
+        // 서버에서 가져온 최신 양식 질문을 로컬 스토리지에 저장
+        if (data) {
+          localStorage.setItem('form_questions', JSON.stringify(data))
+          // 다른 컴포넌트에 상태 동기화 알림
+          window.dispatchEvent(new CustomEvent('formQuestionsChanged'))
+        }
+      }
     }
   )
 
@@ -319,6 +329,10 @@ const Admin = () => {
         console.log('양식 질문 업데이트 성공:', data)
         queryClient.setQueryData('form-questions', data)
         queryClient.invalidateQueries('form-questions')
+        
+        // 로컬 스토리지에 저장
+        localStorage.setItem('form_questions', JSON.stringify(data))
+        
         // 다른 탭/창에서도 업데이트되도록 커스텀 이벤트 발생
         window.dispatchEvent(new CustomEvent('formQuestionsChanged'))
         toast.success('신청 양식이 업데이트되었습니다')

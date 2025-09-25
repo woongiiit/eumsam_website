@@ -82,6 +82,9 @@ const Application = () => {
         // 서버 API에서 양식 질문 조회
         const response = await api.get('/application-form/questions')
         setFormQuestions(response.data)
+        
+        // 서버에서 가져온 최신 양식 질문을 로컬 스토리지에 저장
+        localStorage.setItem('form_questions', JSON.stringify(response.data))
       } catch (error) {
         console.error('서버에서 양식 질문 조회 실패, 로컬 스토리지에서 로드:', error)
         // API 실패 시 로컬 스토리지에서 로드
