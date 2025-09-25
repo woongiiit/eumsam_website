@@ -33,12 +33,6 @@ const Login = () => {
           <h2 className="mt-6 text-3xl font-bold text-[#EAEAEA]">
             음샘에 오신 것을 환영합니다
           </h2>
-          <p className="mt-2 text-sm text-[#B0B0B0]">
-            계정이 없으신가요?{' '}
-            <Link to="/register" className="font-medium text-[#6DD3C7] hover:text-[#4ECDC4]">
-              회원가입하기
-            </Link>
-          </p>
         </div>
 
         <div className="bg-[#121212] border border-[#2A2A2A] py-8 px-6 shadow-xl rounded-2xl">
