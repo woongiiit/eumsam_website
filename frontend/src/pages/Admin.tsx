@@ -616,7 +616,7 @@ const SupportTab = ({
   isUpdating,
   onResetApplicants
 }: {
-  supportSettings: { is_active: boolean; max_applicants: number; current_applicants: number } | undefined
+  supportSettings: { is_active: boolean; max_applicants: number; current_applicants: number; form_questions?: any[] } | undefined
   supportLoading: boolean
   onToggleSupport: (isActive: boolean, maxApplicants: number) => void
   isUpdating: boolean
