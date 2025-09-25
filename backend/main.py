@@ -26,7 +26,7 @@ app = FastAPI(
 )
 
 # CORS 설정
-allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,https://eumsaem-band.vercel.app,https://eumsamfrontend-production.up.railway.app").split(",")
+allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,https://eumsaem-band.vercel.app,https://eumsamfrontend-production.up.railway.app,https://eumsaim.shop").split(",")
 print(f"CORS 허용된 Origin들: {allowed_origins}")
 
 app.add_middleware(
