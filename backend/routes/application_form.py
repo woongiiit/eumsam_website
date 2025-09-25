@@ -16,7 +16,8 @@ async def get_application_form(
     db: Session = Depends(get_db)
 ):
     """신청 양식 조회 (모든 사용자 가능)"""
-    form = db.query(ApplicationForm).filter(ApplicationForm.is_active == True).first()
+    # 가장 최근의 양식 조회 (활성화 상태와 관계없이)
+    form = db.query(ApplicationForm).order_by(ApplicationForm.id.desc()).first()
     
     if not form:
         # 기본 양식 생성
@@ -64,6 +65,9 @@ async def get_application_form(
         db.commit()
         db.refresh(form)
     # current_applicants 값은 초기화 기능을 위해 그대로 사용 (자동 계산하지 않음)
+    
+    # 디버깅을 위한 응답 데이터 로그
+    print(f"신청 양식 조회 응답: is_active={form.is_active}, max_applicants={form.max_applicants}, current_applicants={form.current_applicants}")
     
     return form
 
