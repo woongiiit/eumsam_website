@@ -129,15 +129,18 @@ async def get_form_questions(
     db: Session = Depends(get_db)
 ):
     """신청 양식 질문들만 조회 (JSON 파싱된 형태)"""
-    form = db.query(ApplicationForm).filter(ApplicationForm.is_active == True).first()
+    # 가장 최근의 양식 조회 (활성화 상태와 관계없이)
+    form = db.query(ApplicationForm).order_by(ApplicationForm.id.desc()).first()
     
     if not form or not form.form_questions:
         return []
     
     try:
         questions = json.loads(form.form_questions)
+        print(f"질문 조회 응답: {len(questions)}개 질문, is_active={form.is_active}")
         return questions
     except json.JSONDecodeError:
+        print("질문 JSON 파싱 오류")
         return []
 
 @router.put("/questions")
@@ -155,7 +158,9 @@ async def update_form_questions(
         questions_dict = [q.dict() for q in questions]
         print(f"변환된 질문 데이터: {questions_dict}")
         
-        form = db.query(ApplicationForm).filter(ApplicationForm.is_active == True).first()
+        # 가장 최근의 양식 조회 (활성화 상태와 관계없이)
+        form = db.query(ApplicationForm).order_by(ApplicationForm.id.desc()).first()
+        print(f"조회된 양식: ID={form.id if form else None}, is_active={form.is_active if form else None}")
         
         if not form:
             # 새로운 양식 생성
@@ -169,7 +174,7 @@ async def update_form_questions(
             print("새로운 양식 추가 완료")
         else:
             # 기존 양식 업데이트
-            print("기존 양식 업데이트 중...")
+            print(f"기존 양식 업데이트 중... (ID: {form.id}, is_active: {form.is_active})")
             form.form_questions = json.dumps(questions_dict)
             form.updated_by = current_user.id
             form.updated_at = datetime.utcnow()
